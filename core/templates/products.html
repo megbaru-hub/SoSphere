@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block title %}Products {% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <h4>Filters</h4>
+            <div class="accordion" id="filtersAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#genderFilter">
+                            Gender
+                        </button>
+                    </h2>
+                    <div id="genderFilter" class="accordion-collapse collapse show" data-bs-parent="#filtersAccordion">
+                        <div class="accordion-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="men" value="men" onchange="applyFilter()">
+                                <label class="form-check-label" for="men">Men</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="women" value="women" onchange="applyFilter()">
+                                <label class="form-check-label" for="women">Women</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="unisex" value="unisex" onchange="applyFilter()">
+                                <label class="form-check-label" for="unisex">Unisex</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sizeFilter">
+                            Size
+                        </button>
+                    </h2>
+                    <div id="sizeFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
+                        <div class="accordion-body">
+                            <select class="form-select" onchange="applyFilter()">
+                                <option value="">All Sizes</option>
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#widthFilter">
+                            Width
+                        </button>
+                    </h2>
+                    <div id="widthFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
+                        <div class="accordion-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="narrow" value="narrow" onchange="applyFilter()">
+                                <label class="form-check-label" for="narrow">Narrow</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="mediumWidth" value="medium" onchange="applyFilter()">
+                                <label class="form-check-label" for="mediumWidth">Medium</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="wide" value="wide" onchange="applyFilter()">
+                                <label class="form-check-label" for="wide">Wide</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#colorFilter">
+                            Color
+                        </button>
+                    </h2>
+                    <div id="colorFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
+                        <div class="accordion-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="red" value="red" onchange="applyFilter()">
+                                <label class="form-check-label" for="red">Red</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="blue" value="blue" onchange="applyFilter()">
+                                <label class="form-check-label" for="blue">Blue</label>
+                            </div>
+                            <!-- Add more colors as needed -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outline-secondary w-100 mt-3" onclick="clearFilters()">Clear Filters</button>
+        </div>
+        <div class="col-md-9">
+            <h2>Products ({{ products|length }})</h2>
+            <div class="row" id="productGrid">
+                {% for product in products %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="{{ product.image.url|default:'https://via.placeholder.com/300x200?text=No+Image' }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatewords:15 }}</p>
+                            <p class="text-success fw-bold fs-5">${{ product.price }}</p>
+                            <p class="text-warning small mb-2">Stock: {{ product.stock }} remaining</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="star-rating">
+                                    {% for i in "12345"|make_list %}
+                                    <i class="bi bi-star{% if forloop.counter <= product.rating %} text-warning{% else %} text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                    <span class="text-muted small">({{ product.rating }} stars)</span>
+                                </div>
+                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary btn-sm">View</a>
+                            </div>
+                            <form method="post" action="{% url 'add_to_cart' product.pk %}" class="mt-2">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control" style="width: 70px;">
+                                    <button type="submit" class="btn btn-success">Add to Cart</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <h4>No products match your filters.</h4>
+                        <a href="{% url 'products' %}" class="btn btn-primary">Clear & Browse All</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if is_paginated %}
+            <nav aria-label="Product pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+let currentFilters = {};
+
+function applyFilter() {
+    const filters = {};
+    $('#filtersAccordion input:checked, #filtersAccordion select').each(function() {
+        const name = $(this).attr('name') || $(this).attr('id');
+        const value = $(this).val();
+        if (value) filters[name] = value;
+    });
+    currentFilters = filters;
+
+    $.get('?page=1', filters, function(data) {
+        $('#productGrid').html($(data).find('#productGrid').html());
+    });
+}
+
+function clearFilters() {
+    $('#filtersAccordion input:checked').prop('checked', false);
+    $('#filtersAccordion select').val('');
+    applyFilter();
+}
+</script>
+{% endblock %}

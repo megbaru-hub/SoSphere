@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - Grand Seller{% endblock %}
+{% block content %}
+
+<style>
+    :root {
+        --grand-seller-gold: #FFD700;
+        --grand-seller-dark-gold: #DAA520;
+        --grand-seller-bg-dark: #222831;
+    }
+    .golden-text-heading {
+        color: var(--grand-seller-dark-gold) !important;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .dark-golden-text {
+        color: var(--grand-seller-dark-gold) !important;
+    }
+    .btn-golden-success {
+        background-color: var(--grand-seller-dark-gold);
+        color: #ffffff; 
+        border: 1px solid var(--grand-seller-dark-gold);
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+    .btn-golden-success:hover {
+        background-color: var(--grand-seller-gold);
+        color: var(--grand-seller-bg-dark);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+    }
+    .img-thumbnail-variant {
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+        object-fit: cover;
+    }
+    .img-thumbnail-variant:hover {
+        transform: scale(1.05);
+    }
+    .img-thumbnail-variant.active {
+        border-color: var(--grand-seller-gold) !important;
+    }
+    .form-select {
+        border-radius: 10px;
+    }
+    .form-control {
+        border-radius: 50px 0 0 50px !important;
+    }
+    .input-group-text {
+        border-radius: 50px 0 0 50px;
+    }
+    .input-group .btn {
+        border-radius: 0 50px 50px 0 !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        <img id="productImage" src="{{ product.image.url|default:'https://via.placeholder.com/600x450?text=No+Image' }}" class="img-fluid rounded shadow" alt="{{ product.name }}" style="max-height: 450px; width: 100%; object-fit: cover;">
+        
+        {% if variants|length > 0 %}
+        <div class="mt-3 d-flex flex-wrap gap-2 justify-content-center">
+            {% if product.image.url %}
+            <img src="{{ product.image.url }}" 
+                 class="img-thumbnail img-thumbnail-variant active" 
+                 alt="Main Image" 
+                 data-id="{{ product.pk }}"
+                 data-price="{{ product.price }}"
+                 data-image="{{ product.image.url }}"
+                 data-stock="{{ product.stock }}"
+                 style="width: 75px; height: 75px;">
+            {% endif %}
+            
+            {% for variant in variants %}
+            <img src="{{ variant.image.url|default:product.image.url }}" 
+                 class="img-thumbnail img-thumbnail-variant" 
+                 alt="{{ variant.color.name }} Variant" 
+                 data-id="{{ variant.id }}"
+                 data-price="{{ variant.price|default:product.price }}"
+                 data-image="{{ variant.image.url|default:product.image.url }}"
+                 data-stock="{{ variant.stock }}"
+                 style="width: 75px; height: 75px;">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
+        <h1 class="mb-3 golden-text-heading">{{ product.name }}</h1>
+        <p class="lead dark-golden-text fs-3 mb-2" id="productPrice">${{ product.price }}</p>
+        <p class="text-muted mb-3">
+            Stock: <span id="stockCount" class="badge bg-info">{{ product.stock }}</span> remaining
+        </p>
+        <p class="text-secondary">{{ product.description }}</p>
+
+        {% if variants %}
+        <h4 class="mt-4 mb-3 golden-text-heading">Color Options</h4>
+        <select id="variantSelect" class="form-select mb-3">
+            <option value="">Select Color</option>
+            {% for variant in variants %}
+            <option value="{{ variant.id }}" 
+                    data-price="{{ variant.price|default:product.price }}" 
+                    data-image="{{ variant.image.url|default:product.image.url }}" 
+                    data-stock="{{ variant.stock }}">
+                {{ variant.color.name }} ({{ variant.stock }} remaining)
+            </option>
+            {% empty %}
+            <option disabled>No colors available</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+
+        <form method="post" action="{% url 'add_to_cart' product.pk %}" id="addForm">
+            {% csrf_token %}
+            <input type="hidden" name="variant_id" id="variantIdInput" value="">
+            
+            <div class="input-group mb-3">
+                <span class="input-group-text">Quantity</span>
+                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control" id="quantityInput">
+                <button type="submit" class="btn btn-golden-success" id="addCartBtn">Add to Cart</button>
+            </div>
+        </form>
+        <a href="{% url 'products' %}" class="btn btn-outline-secondary">Back to Products</a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initial check for the main product's stock
+    if ({{ product.stock }} == 0) {
+        $('#addCartBtn').prop('disabled', true);
+    }
+    
+    // Function to update all UI elements based on selected variant/thumbnail data
+    function updateProductUI(data) {
+        // Update main image
+        $('#productImage').attr('src', data.image);
+        
+        // Update price
+        $('#productPrice').text('$' + data.price);
+        
+        // Update stock
+        const stock = parseInt(data.stock);
+        $('#stockCount').text(stock);
+        $('#stockCount').removeClass('bg-info bg-warning').addClass(stock > 10 ? 'bg-info' : 'bg-warning');
+        
+        // Update quantity and button state
+        $('#quantityInput').attr('max', stock).val(Math.min(1, stock));
+        $('#addCartBtn').prop('disabled', stock === 0);
+        
+        // Update the form action for the correct product/variant
+        if (data.id) {
+            // Set the hidden input for the variant ID
+            $('#variantIdInput').val(data.id);
+            // If the URL needs to change for the variant, update the form action
+            // $('#addForm').attr('action', "{% url 'add_to_cart' product.pk %}?variant=" + data.id); 
+        } else {
+             $('#variantIdInput').val('');
+        }
+    }
+
+    // --- Event Handlers ---
+    
+    // 1. Thumbnail Click Handler
+    $('.img-thumbnail-variant').on('click', function() {
+        // Remove active state from all thumbnails and apply to clicked one
+        $('.img-thumbnail-variant').removeClass('active');
+        $(this).addClass('active');
+
+        // Get data from the thumbnail
+        const data = {
+            id: $(this).data('id'),
+            price: $(this).data('price'),
+            image: $(this).data('image'),
+            stock: $(this).data('stock')
+        };
+        
+        updateProductUI(data);
+
+        // Synchronize the dropdown
+        $('#variantSelect').val(data.id || '');
+    });
+
+    // 2. Dropdown Change Handler
+    $('#variantSelect').change(function() {
+        const selected = $(this).val();
+        let data = {};
+        
+        if (selected) {
+            const option = $(this).find('option:selected');
+            data = {
+                id: option.val(),
+                price: option.data('price'),
+                image: option.data('image'),
+                stock: option.data('stock')
+            };
+            
+            // Synchronize thumbnails
+            $('.img-thumbnail-variant').removeClass('active');
+            $(`.img-thumbnail-variant[data-id="${selected}"]`).addClass('active');
+
+        } else {
+            // Reset to default product data
+            data = {
+                id: null,
+                price: '{{ product.price }}',
+                image: '{{ product.image.url|default:"https://via.placeholder.com/400x300?text=No+Image" }}',
+                stock: '{{ product.stock }}'
+            };
+            
+            // Synchronize thumbnails (activate the main one)
+            $('.img-thumbnail-variant').removeClass('active');
+            $(`.img-thumbnail-variant[data-id="{{ product.pk }}"]`).addClass('active');
+        }
+        
+        updateProductUI(data);
+    });
+});
+</script>
+{% endblock %}

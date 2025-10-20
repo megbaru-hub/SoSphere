@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Grand Seller{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Define golden colors as CSS variables for easy management */
+        :root {
+            --grand-seller-gold: #FFD700; /* Standard Gold */
+            --grand-seller-dark-gold: #DAA520; /* Goldenrod */
+            --grand-seller-light-gold: #FFECB3; /* Lighter Gold for accents */
+            --grand-seller-bg-dark: #222831; /* Dark Grey/Black for contrast */
+            --grand-seller-text-light: #f4f4f4; /* Off-white for general text */
+        }
+
+        /* --- LAYOUT FIXES (Navbar & Padding) --- */
+        body {
+            /* 175px padding for 150px badge + 25px margin/padding */
+            padding-top: 175px; 
+            background-color: #f8f9fa; 
+            color: #333; 
+        }
+
+        /* --- NAVBAR STYLING (Golden Theme) --- */
+        .navbar {
+            /* Darker background for navbar, with a subtle golden touch */
+            background: linear-gradient(135deg, var(--grand-seller-bg-dark), #1A1A1D); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+            padding: 0.5rem 1rem;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--grand-seller-gold) !important; /* Golden brand name */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4); 
+        }
+        
+        /* Nav links with golden hover/active states */
+        .nav-link {
+            color: var(--grand-seller-text-light) !important;
+            font-weight: 500;
+            padding: 0.5rem 0.5rem !important;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 0 0.25rem;
+        }
+        .nav-link:hover {
+            color: var(--grand-seller-gold) !important; /* Golden hover */
+            background: rgba(255,215,0,0.1); 
+            transform: translateY(-1px);
+        }
+        .nav-link.active {
+            color: var(--grand-seller-gold) !important; /* Golden active link */
+            background: rgba(255,215,0,0.2); 
+        }
+
+        /* Cart Badge */
+        .badge {
+            background: #e74c3c;
+            font-size: 0.75rem;
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Grand Seller Badge Size */
+        .grand-seller-badge {
+            width: 150px;
+            height: 150px;
+            margin-right: 5px;
+        }
+
+        /* Search Bar Styling */
+        .search-form {
+            max-width: 300px;
+            margin: 0 1rem;
+        }
+        .search-form .form-control {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--grand-seller-dark-gold); 
+            background-color: rgba(255,255,255,0.05);
+            color: var(--grand-seller-text-light);
+        }
+        .search-form .form-control::placeholder {
+            color: #ccc;
+        }
+        .search-form .btn {
+            border-radius: 20px 0 0 20px;
+            padding: 0.5rem 1rem;
+            background: rgba(255,215,0,0.15);
+            border: none;
+            color: var(--grand-seller-gold);
+        }
+        .search-form .btn:hover {
+            background: rgba(255,215,0,0.3);
+        }
+
+        /* --- CONTENT STYLING (For global elements like cards) --- */
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .card-title {
+            font-weight: 600;
+        }
+        
+        /* Golden Primary Button Style (e.g., View Details, Start Shopping) */
+        .btn-golden-primary {
+            border-radius: 50px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 600;
+            border: none;
+            background: var(--grand-seller-gold); 
+            color: var(--grand-seller-bg-dark); 
+            transition: all 0.3s ease;
+        }
+        .btn-golden-primary:hover {
+            background: var(--grand-seller-dark-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Golden Success Button Style (e.g., Add to Cart, Checkout) */
+        .btn-golden-success {
+            background-color: var(--grand-seller-dark-gold);
+            color: #ffffff; 
+            border: 1px solid var(--grand-seller-dark-gold);
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .btn-golden-success:hover {
+            background-color: var(--grand-seller-gold);
+            color: var(--grand-seller-bg-dark);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+
+        /* --- MEDIA QUERIES (Mobile Fixes) --- */
+        @media (max-width: 768px) {
+            .nav-link { padding: 0.5rem 0.25rem !important; margin: 0 0.1rem; }
+            .grand-seller-badge { width: 100px; height: 100px; margin-right: 5px; }
+            .search-form { max-width: 200px; margin: 0; }
+            /* Adjusted padding for 100px mobile badge */
+            body {
+                padding-top: 125px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                {% load static %}
+                <img src="{% static 'images/grand-seller-badge.png' %}" class="grand-seller-badge" alt="Grand Seller">
+                <a class="navbar-brand" href="{% url 'home' %}">Grand Seller</a>
+            </div>
+
+            <form class="d-flex search-form" method="get" action="{% url 'products' %}">
+                <input class="form-control me-1" type="search" placeholder="Search products..." name="q">
+                <button class="btn" type="submit"><i class="bi bi-search"></i></button>
+            </form>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'products' %}active{% endif %}" href="{% url 'products' %}">
+                            <i class="bi bi-grid-3x3"></i> Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'contact' %}">
+                            <i class="bi bi-envelope"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}" href="{% url 'cart' %}">
+                            <i class="bi bi-basket"></i> Cart
+                            {% with cart=request.session.cart %}
+                                {% if cart %}
+                                    <span class="badge">{{ cart|length }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        // Handle resize to fix collapse state
+        let resizeTimer;
+        $(window).on('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (window.innerWidth >= 992) {
+                    $('#navbarNav').addClass('show');
+                } else {
+                    $('#navbarNav').removeClass('show');
+                }
+            }, 250);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

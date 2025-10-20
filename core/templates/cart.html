@@ -1,0 +1,249 @@
+
+{% extends 'base.html' %}
+{% load math_filters %}
+{% load static %}
+
+{% block title %}Cart - Grand Seller{% endblock %}
+
+{% block content %}
+<style>
+    /* Golden Theme Styles (Ensuring consistency with base.html) */
+    :root {
+        --grand-seller-gold: #FFD700;
+        --grand-seller-dark-gold: #DAA520;
+        --grand-seller-bg-dark: #222831;
+    }
+
+    /* Apply golden theme to table header */
+    .cart-table thead th {
+        background-color: var(--grand-seller-bg-dark) !important;
+        color: var(--grand-seller-gold) !important;
+        border: none;
+        font-weight: 600;
+    }
+
+    /* Style the Grand Total row for emphasis */
+    .grand-total-row {
+        font-size: 1.25rem;
+        font-weight: 700;
+        border-top: 3px solid var(--grand-seller-dark-gold) !important;
+    }
+    .grand-total-row td, .grand-total-row strong {
+        color: var(--grand-seller-dark-gold) !important;
+    }
+
+    /* Style the 'Proceed to Checkout' button (Golden Success) */
+    .btn-checkout-golden {
+        background-color: var(--grand-seller-dark-gold);
+        color: #ffffff;
+        border: none;
+        font-size: 1.2rem;
+        padding: 12px 30px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .btn-checkout-golden:hover {
+        background-color: var(--grand-seller-gold);
+        color: var(--grand-seller-bg-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Style the 'Continue Shopping' button */
+    .btn-continue-shopping {
+        background-color: #6c757d;
+        color: #ffffff;
+        border-radius: 50px;
+        padding: 10px 25px;
+        transition: all 0.3s ease;
+    }
+    .btn-continue-shopping:hover {
+        background-color: #5a6268;
+        transform: translateY(-1px);
+    }
+    
+    .product-image-thumbnail {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        border-radius: 5px;
+        border: 1px solid #eee;
+        margin-right: 10px;
+    }
+    .table td, .table th {
+        vertical-align: middle;
+    }
+    /* Quantity Input Style */
+    .quantity-input {
+        width: 80px;
+        text-align: center;
+        font-weight: 500;
+    }
+    .quantity-input:focus {
+        border-color: var(--grand-seller-dark-gold);
+        box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+    }
+    .update-quantity-btn {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    .update-quantity-btn:hover {
+        background-color: #5a6268;
+        color: white;
+    }
+</style>
+
+<div class="container my-5">
+    <h1 class="mb-4">Shopping Cart</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <div>{{ message }}</div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cart %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle cart-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Product</th>
+                        <th style="width: 15%;">Price</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 15%;">Total</th>
+                        <th style="width: 15%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, item in cart.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if item.image %}
+                                    <img src="{{ item.image }}" alt="{{ item.name }}" class="product-image-thumbnail">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder.png' %}" alt="No Image" class="product-image-thumbnail">
+                                {% endif %}
+                                <div>
+                                    {# CRITICAL FIX: Add check for item.product_id before generating the URL #}
+                                    {% if item.product_id %}
+                                        <a href="{% url 'product_detail' item.product_id %}" class="text-dark fw-bold">{{ item.name }}</a>
+                                    {% else %}
+                                        {# Fallback for corrupt session data #}
+                                        <span class="text-dark fw-bold">{{ item.name }}</span>
+                                    {% endif %}
+                                    
+                                    {% if item.variant_name %}
+                                        <p class="small text-muted mb-0">Color: {{ item.variant_name }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>${{ item.price|floatformat:2 }}</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.stock }}" data-key="{{ key }}" data-price="{{ item.price }}" onchange="updateQuantity(this)">
+                                <span class="input-group-text"> </span>
+                            </div>
+                        </td>
+                        <td class="line-total text-success fw-bold" id="line-total-{{ key }}">${{ item.price|floatformat:2|multiply:item.quantity|floatformat:2 }}</td>
+                        <td>
+                            <form method="post" action="{% url 'remove_from_cart' key %}" class="d-inline" onsubmit="return confirm('Remove {{ item.name }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="grand-total-row">
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Grand Total</strong></td>
+                        <td colspan="2"><strong class="text-success fs-4" id="grand-total">${{ total|floatformat:2 }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'products' %}" class="btn btn-continue-shopping">
+                <i class="bi bi-arrow-left"></i> Continue Shopping
+            </a>
+
+            <div class="col-md-3">
+                <a href="{% url 'checkout' %}" class="btn btn-checkout-golden w-100">
+                    Proceed to Checkout <i class="bi bi-bag-check"></i>
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <h4 class="mb-3"><i class="bi bi-basket me-2"></i> Your cart is empty!</h4>
+            <p><a href="{% url 'products' %}" class="btn btn-checkout-golden">Start Shopping</a></p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- CSRF Token for AJAX -->
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+function getCSRFToken() {
+    return $('meta[name="csrf-token"]').attr('content');
+}
+
+function updateQuantity(input) {
+    const key = input.dataset.key;
+    const quantity = parseInt(input.value);
+    const price = parseFloat(input.dataset.price);
+    const maxStock = parseInt(input.max);
+    
+    if (quantity > maxStock) {
+        alert('Not enough stock. Maximum: ' + maxStock);
+        input.value = maxStock;
+        return;
+    }
+    
+    // Update line total
+    const lineTotal = $('#line-total-' + key);
+    lineTotal.text('$' + (price * quantity).toFixed(2));
+    
+    // Update grand total
+    let grandTotal = 0;
+    $('.line-total').each(function() {
+        grandTotal += parseFloat($(this).text().replace('$', ''));
+    });
+    $('#grand-total').text('$' + grandTotal.toFixed(2));
+    
+    // AJAX with CSRF
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+            }
+        }
+    });
+    
+    $.post('{% url "update_cart" %}', {key: key, quantity: quantity}, function(data) {
+        if (data.error) {
+            alert(data.error);
+            input.value = 1;
+            location.reload();  // Reload if error
+        } else {
+            console.log('Quantity updated successfully');
+        }
+    }).fail(function() {
+        alert('Error updating quantity. Please refresh.');
+        location.reload();
+    });
+}
+</script>
+{% endblock %}

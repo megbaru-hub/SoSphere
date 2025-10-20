@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Home - Grand Seller{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold golden-text-heading">Welcome to Grand Seller</h1>
+            <p class="lead text-muted">Your premier commercial hub for exclusive products and services.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h2 class="h3 fw-bold text-dark">Featured Products</h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm hover-shadow">
+                <img src="{{ product.image.url|default:'https://via.placeholder.com/100x100?text=No+Image' }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ product.description|truncatewords:15 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="dark-golden-text h5 fw-bold">${{ product.price }}</span>
+                        <span class="text-warning small">Stock: {{ product.stock }}</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'product_detail' product.pk %}" class="btn btn-golden-primary btn-sm">View Details</a>
+                        <form method="post" action="{% url 'add_to_cart' product.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control">
+                                <button type="submit" class="btn btn-golden-success">Add to Cart</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>No featured products available</h4>
+                <a href="{% url 'products' %}" class="btn btn-golden-primary">Browse All Products</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Golden Color Variables (Matching previous base.html style) */
+:root {
+    --grand-seller-gold: #FFD700; /* Standard Gold */
+    --grand-seller-dark-gold: #DAA520; /* Goldenrod */
+    --grand-seller-bg-dark: #222831; /* Dark Grey/Black for contrast */
+}
+
+/* --- TEXT STYLING --- */
+.golden-text-heading {
+    color: var(--grand-seller-dark-gold) !important;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+.dark-golden-text {
+    color: var(--grand-seller-dark-gold) !important;
+}
+
+/* --- CARD STYLING --- */
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+.hover-shadow:hover {
+    /* Subtle golden glow on hover */
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2) !important; 
+}
+.card {
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05); /* Light border */
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* --- BUTTON STYLING (Golden Theme) --- */
+.btn-golden-primary {
+    background-color: var(--grand-seller-gold);
+    color: var(--grand-seller-bg-dark); /* Dark text on gold */
+    border: 1px solid var(--grand-seller-dark-gold);
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+.btn-golden-primary:hover {
+    background-color: var(--grand-seller-dark-gold);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Use the same golden style for the "Add to Cart" button */
+.btn-golden-success {
+    background-color: var(--grand-seller-dark-gold);
+    color: #ffffff; 
+    border: 1px solid var(--grand-seller-dark-gold);
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+.btn-golden-success:hover {
+    background-color: var(--grand-seller-gold);
+    color: var(--grand-seller-bg-dark);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.input-group-sm .form-control {
+    border-radius: 50px 0 0 50px; /* Match button curvature */
+    border-color: #ced4da !important;
+}
+.input-group-sm .btn {
+    border-radius: 0 50px 50px 0 !important; /* Match button curvature */
+}
+
+</style>
+{% endblock %}

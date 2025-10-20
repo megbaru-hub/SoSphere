@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Order Confirmation - SoSphere{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="text-success mb-4">Order Confirmed!</h1>
+    <p class="lead">Thank you for your purchase. Order ID: #{{ orders.id }}</p>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Buyer Information</h3>
+            <p><strong>Name:</strong> {{ orders.buyer_name }}</p>
+            <p><strong>Email:</strong> {{ orders.buyer_email }}</p>
+            <p><strong>Phone:</strong> {{ orders.buyer_phone }}</p>
+            <p><strong>City:</strong> {{ orders.buyer_city }}</p>
+           # <p><strong>Address:</strong> {{ orders.buyer_address }}</p>
+            <p><strong>Bought at:</strong> {{ orders.bought_at|date:"M d, Y H:i:s" }} (exact time)</p>
+        </div>
+        <div class="col-md-6">
+            <h3>Order Details</h3>
+            <p><strong>Product:</strong> {{ orders.product.name }}</p>
+            <p><strong>Quantity:</strong> {{ orders.quantity }}</p>
+            <p><strong>Total:</strong> ${{ orders.total|floatformat:2 }}</p>
+            <p><strong>Stock Remaining:</strong> {{ orders.product.stock }} (auto-updated)</p>
+            {% if orders.product.stock == 0 %}
+                <p class="alert alert-warning">Product sold out—removed from site.</p>
+            {% endif %}
+        </div>
+    </div>
+    <a href="{% url 'products' %}" class="btn btn-primary mt-4">Browse More</a>
+</div>
+{% endblock %}

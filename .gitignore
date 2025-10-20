@@ -1,0 +1,12 @@
+# Python specific files
+__pycache__/
+*.pyc
+
+# Virtual Environment folder
+venv/
+env/
+
+# Django specific files
+db.sqlite3
+*.sqlite3
+/media/
