@@ -3,10 +3,27 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.forms.widgets import Select # NEW: Import Select for custom widget
 
-from .models import Product, Color, ProductVariant, ContactMessage, Order, OrderItem
+# Ensure all models are imported, including Category (and ICON_CHOICES from models)
+from .models import Product, Color, ProductVariant, ContactMessage, Order, OrderItem, Category, ICON_CHOICES 
 
-# --- 1. INLINE DEFINITIONS (Must come first) ---
+# --- NEW: Custom Widget to display icons in the Category dropdown ---
+class IconChoiceWidget(Select):
+    """
+    A custom form widget that formats the <option> tag in the admin 
+    to include the Bootstrap icon next to the icon class name.
+    """
+    def render_option(self, selected_choices, option_value, option_label):
+        # We only customize options that have a value (i.e., not the empty choice)
+        if option_value:
+            # Displays the actual icon (e.g., <i class="bi bi-phone-fill"></i>)
+            display_label = format_html('<i class="bi {}"></i> {}', option_value, option_label)
+        else:
+            display_label = option_label
+        return super().render_option(selected_choices, option_value, display_label)
+
+# --- 1. INLINE DEFINITIONS ---
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
@@ -29,8 +46,12 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'stock', 'rating', 'is_available')
-    list_filter = ('created_at', 'stock')
+    # CRITICAL CHANGE 1: Added 'category' to list_display
+    list_display = ('name', 'category', 'price', 'stock', 'rating', 'is_available')
+    
+    # CRITICAL CHANGE 2: Added 'category' to list_filter to enable filtering by product type
+    list_filter = ('category', 'created_at', 'stock') 
+    
     search_fields = ('name', 'description')
     inlines = [ProductVariantInline]
 
@@ -79,3 +100,22 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'product_name', 'variant_name', 'quantity', 'price')
     list_filter = ('order',)
     search_fields = ('order__id', 'product_name', 'variant_name')
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    # UPDATED: Added 'display_icon' to the list view
+    list_display = ('name', 'display_icon')
+    
+    # NEW: Overrides the form field for 'icon_class' to use our custom widget
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == "icon_class":
+            kwargs['choices'] = ICON_CHOICES
+            kwargs['widget'] = IconChoiceWidget
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
+
+    # NEW: Method to render the icon in the main Category list
+    def display_icon(self, obj):
+        if obj.icon_class:
+            return format_html('<i class="bi {} fs-5"></i>', obj.icon_class)
+        return "No Icon"
+    display_icon.short_description = "Icon"

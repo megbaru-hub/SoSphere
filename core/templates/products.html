@@ -1,104 +1,226 @@
 {% extends 'base.html' %}
-{% block title %}Products {% endblock %}
+{% block title %}Products{% endblock %}
 {% block content %}
+<style>
+/* ... (Your CSS styles remain here) ... */
+:root {
+    --primary-color: #6366f1;
+    --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+    --secondary-color: #f59e0b;
+    --accent-color: #10b981;
+    --bg-light: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 20px 25px rgba(0,0,0,0.1);
+    --shadow-glow: 0 0 20px rgba(99,102,241,0.3);
+    --transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes glow {
+    from { box-shadow: var(--shadow-md); }
+    to { box-shadow: var(--shadow-lg), var(--shadow-glow); }
+}
+
+/* ---------- Accordion & Filters ---------- */
+.accordion-item {
+    border-radius: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+}
+
+.accordion-item:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+.accordion-header {
+    background: linear-gradient(135deg, var(--bg-light), var(--bg-card));
+}
+
+.accordion-button {
+    font-weight: 600;
+    color: var(--text-dark);
+    padding: 18px 24px;
+    background: transparent;
+    transition: var(--transition);
+}
+
+.accordion-button:not(.collapsed) {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+/* ---------- Category Pills ---------- */
+.category-pill {
+    cursor: pointer;
+    transition: var(--transition);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    font-weight: 600;
+    border: 2px solid var(--border-color);
+    background: var(--bg-card);
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.category-pill:hover {
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateX(8px) translateY(-2px);
+}
+
+.category-pill.active {
+    background: var(--primary-gradient);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-glow);
+    transform: scale(1.02);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* ---------- Clear Filters Button ---------- */
+.btn-outline-secondary {
+    border-radius: 16px;
+    font-weight: 600;
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    padding: 14px 24px;
+    transition: var(--transition);
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, var(--secondary-color), #fbbf24);
+    color: white;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px) scale(1.02);
+}
+
+/* ---------- Sticky Filter Sidebar ---------- */
+@media (min-width: 768px) {
+    .filter-sidebar {
+        position: sticky;
+        top: 100px; /* Adjust for navbar height */
+        height: calc(100vh - 120px);
+        overflow-y: auto;
+        padding-right: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--bg-light);
+    }
+    .filter-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .filter-sidebar::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+}
+
+/* ---------- Responsive Tweaks ---------- */
+@media (max-width: 768px) {
+    .category-pill {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+}
+#product-heading {
+    /* Base styling for all states */
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    background: var(--bg-card);
+    transition: var(--transition);
+    /* Ensure the heading is the correct size on all screens */
+    width: 100%; 
+    color: #DAA520;
+    background-color: Grey;
+}
+
+/* This advanced selector applies the "GAIN" effect 
+   ONLY when a specific category is selected. 
+   It checks if the heading does NOT contain 'Products' (meaning it has a category name) 
+   AND contains the count parenthesis. 
+*/
+.col-md-9:has(#product-heading:not(:contains('Products'))):has(#product-heading:contains('(')) #product-heading {
+    background: var(--primary-gradient); /* Gradient fill */
+    color: white; /* White text for contrast */
+    box-shadow: 0 5px 20px rgba(99, 102, 241, 0.7); /* Strong blue glow */
+    border: 1px solid var(--primary-color);
+    animation: pulse 4s infinite ease-in-out; /* Subtle pulsing animation */
+}
+</style>
+
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-3">
-            <h4>Filters</h4>
+        <div class="col-md-3 filter-sidebar">
+            <h4 class="mb-4 fw-bold text-dark">Filter By</h4>
             <div class="accordion" id="filtersAccordion">
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#genderFilter">
-                            Gender
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#categoryFilter">
+                            <i class="bi bi-funnel me-2"></i>Category
                         </button>
                     </h2>
-                    <div id="genderFilter" class="accordion-collapse collapse show" data-bs-parent="#filtersAccordion">
+                    <div id="categoryFilter" class="accordion-collapse collapse show" data-bs-parent="#filtersAccordion">
                         <div class="accordion-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="men" value="men" onchange="applyFilter()">
-                                <label class="form-check-label" for="men">Men</label>
+                            <div class="d-flex flex-column gap-2">
+                                <label class="btn category-pill {% if not selected_category %}active{% endif %}">
+                                    <input class="d-none" type="radio" name="category" id="cat_all" value="" 
+                                           {% if not selected_category %}checked{% endif %} onchange="categoryFilterChange(this)">
+                                    <i class="bi bi-grid-fill me-2"></i> All Categories
+                                </label>
+                                
+                                {% for cat in categories %}
+                                <label class="btn category-pill {% if selected_category and selected_category.id == cat.id %}active{% endif %}">
+                                    <input class="d-none" 
+                                           type="radio" 
+                                           name="category" 
+                                           id="cat_{{ cat.id }}" 
+                                           value="{{ cat.id }}" 
+                                           {% if selected_category and selected_category.id == cat.id %}checked{% endif %}
+                                           onchange="categoryFilterChange(this)">
+                                    <i class="bi {{ cat.icon_class }} me-2"></i> {{ cat.name }} 
+                                </label>
+                                {% endfor %}
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="women" value="women" onchange="applyFilter()">
-                                <label class="form-check-label" for="women">Women</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="unisex" value="unisex" onchange="applyFilter()">
-                                <label class="form-check-label" for="unisex">Unisex</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sizeFilter">
-                            Size
-                        </button>
-                    </h2>
-                    <div id="sizeFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
-                        <div class="accordion-body">
-                            <select class="form-select" onchange="applyFilter()">
-                                <option value="">All Sizes</option>
-                                <option value="small">Small</option>
-                                <option value="medium">Medium</option>
-                                <option value="large">Large</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#widthFilter">
-                            Width
-                        </button>
-                    </h2>
-                    <div id="widthFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
-                        <div class="accordion-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="narrow" value="narrow" onchange="applyFilter()">
-                                <label class="form-check-label" for="narrow">Narrow</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="mediumWidth" value="medium" onchange="applyFilter()">
-                                <label class="form-check-label" for="mediumWidth">Medium</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="wide" value="wide" onchange="applyFilter()">
-                                <label class="form-check-label" for="wide">Wide</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#colorFilter">
-                            Color
-                        </button>
-                    </h2>
-                    <div id="colorFilter" class="accordion-collapse collapse" data-bs-parent="#filtersAccordion">
-                        <div class="accordion-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="red" value="red" onchange="applyFilter()">
-                                <label class="form-check-label" for="red">Red</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="blue" value="blue" onchange="applyFilter()">
-                                <label class="form-check-label" for="blue">Blue</label>
-                            </div>
-                            <!-- Add more colors as needed -->
                         </div>
                     </div>
                 </div>
             </div>
-            <button class="btn btn-outline-secondary w-100 mt-3" onclick="clearFilters()">Clear Filters</button>
+            <button class="btn btn-outline-secondary w-100 mt-3" onclick="clearFilters()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
+            </button>
         </div>
+
         <div class="col-md-9">
-            <h2>Products ({{ products|length }})</h2>
+            <h2 id="product-heading">
+                {% if selected_category %}
+                    {{ selected_category.name }} ({{ products|length }})
+                {% else %}
+                    Products ({{ products|length }})
+                {% endif %}
+            </h2>
             <div class="row" id="productGrid">
                 {% for product in products %}
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 shadow-sm border-0">
-                        <img src="{{ product.image.url|default:'https://via.placeholder.com/300x200?text=No+Image' }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                        <img src="{{ product.image.url|default:'https://via.placeholder.com/300x200?text=No+Image' }}" 
+                             class="card-img-top" alt="{{ product.name }}" 
+                             style="height: 200px; object-fit: cover;">
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text text-muted">{{ product.description|truncatewords:15 }}</p>
@@ -132,6 +254,7 @@
                 </div>
                 {% endfor %}
             </div>
+
             {% if is_paginated %}
             <nav aria-label="Product pagination">
                 <ul class="pagination justify-content-center">
@@ -151,26 +274,63 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-let currentFilters = {};
+function categoryFilterChange(radioElement) {
+    $('.category-pill').removeClass('active');
+    $(radioElement).closest('label').addClass('active');
+    applyFilter();
+}
 
-function applyFilter() {
-    const filters = {};
-    $('#filtersAccordion input:checked, #filtersAccordion select').each(function() {
-        const name = $(this).attr('name') || $(this).attr('id');
-        const value = $(this).val();
-        if (value) filters[name] = value;
-    });
-    currentFilters = filters;
+function applyFilter(filtersOverride = null) {
+    const filters = filtersOverride || {};
+    const categoryInput = $('input[name="category"]:checked');
+    const categoryID = categoryInput.val();
+    if (categoryID) filters['category'] = categoryID;
 
-    $.get('?page=1', filters, function(data) {
+    const searchQuery = new URLSearchParams(window.location.search).get('q');
+    if (!filtersOverride && searchQuery) filters['q'] = searchQuery;
+
+    const queryString = new URLSearchParams(filters).toString();
+    history.replaceState(null, '', `?${queryString}`);
+
+    // Fetch the new content via AJAX
+    $.get(window.location.pathname, filters, function(data) {
+        // Update the main product grid
         $('#productGrid').html($(data).find('#productGrid').html());
+        
+        // Update the product count heading
+        $('#product-heading').html($(data).find('#product-heading').html());
+        
+        // Update pagination if it exists
+        if ($('nav[aria-label="Product pagination"]').length) {
+            $('nav[aria-label="Product pagination"]').html($(data).find('nav[aria-label="Product pagination"]').html());
+        }
     });
 }
 
 function clearFilters() {
     $('#filtersAccordion input:checked').prop('checked', false);
-    $('#filtersAccordion select').val('');
-    applyFilter();
+    $('#cat_all').prop('checked', true);
+    $('.category-pill').removeClass('active');
+    $('input[name="category"][value=""]').closest('label').addClass('active');
+    applyFilter({});
 }
+
+$(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let selectedCategoryID = urlParams.get('category') || '';
+    $('.category-pill').removeClass('active');
+
+    if (!selectedCategoryID) {
+        $('#cat_all').prop('checked', true).closest('label').addClass('active');
+    } else {
+        // Find the category filter button that matches the URL param
+        const selectedRadio = $(`input[name="category"][value="${selectedCategoryID}"]`);
+        if (selectedRadio.length) {
+            selectedRadio.prop('checked', true).closest('label').addClass('active');
+        } else {
+            $('#cat_all').prop('checked', true).closest('label').addClass('active');
+        }
+    }
+});
 </script>
 {% endblock %}

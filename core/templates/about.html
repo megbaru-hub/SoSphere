@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}About Grand Seller{% endblock %}
+{% block content %}
+
+<style>
+/* =====================================================
+   ABOUT PAGE STYLES - GOLDEN THEME
+===================================================== */
+:root {
+    --grand-seller-gold: #FFD700;
+    --grand-seller-dark-gold: #DAA520;
+    --grand-seller-bg-dark: #222831;
+    --grand-seller-bg-light: #f4f4f9; 
+    --grand-seller-text-muted: #6c757d;
+}
+
+/* --- HERO BANNER --- */
+.about-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://via.placeholder.com/1920x400/222831/FFD700?text=Grand+Seller+Quality'); /* Replace with a high-quality banner image */
+    background-size: cover;
+    background-position: center;
+    padding: 100px 0;
+    color: white;
+    margin-bottom: 50px;
+    border-bottom: 5px solid var(--grand-seller-gold);
+}
+.about-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+.about-hero .lead {
+    color: var(--grand-seller-gold);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- VALUE CARDS --- */
+.value-card {
+    background: var(--grand-seller-bg-light);
+    border: none;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    height: 100%;
+}
+.value-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+.value-card i {
+    font-size: 3rem;
+    color: var(--grand-seller-dark-gold);
+    margin-bottom: 15px;
+}
+.value-card h4 {
+    font-weight: 700;
+    color: var(--grand-seller-bg-dark);
+}
+
+/* --- MISSION SECTION --- */
+.mission-section {
+    padding: 50px 0;
+}
+.mission-section h2 {
+    font-weight: 800;
+    color: var(--grand-seller-bg-dark);
+}
+.mission-highlight {
+    color: var(--grand-seller-dark-gold);
+    font-weight: 700;
+}
+.section-image {
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<header class="about-hero text-center">
+    <div class="container">
+        <p class="lead">Our Journey to Excellence</p>
+        <h1>The Story of Grand Seller</h1>
+    </div>
+</header>
+
+<div class="container">
+
+    <section class="mission-section">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                {% load static %}
+                <img src="{% static 'images/grand-seller-badge.png' %}" class="img-fluid section-image" alt="Grand Seller Core">
+            </div>
+            <div class="-lg-col6">
+                <h2 class="mb-4">Our Mission: Redefining Quality</h2>
+                <p class="lead">
+                    Grand Seller was founded on a simple premise: to provide an e-commerce platform where quality, transparency, and exclusivity are not just buzzwords, but foundational principles.
+                </p>
+                <p class="lead">
+                    We meticulously curate every product featured on our site, ensuring that it meets the "Grand Seller Standard" a blend of superior craftsmanship, ethical sourcing, and exceptional value. 
+                </p>
+                <p class="lead">Our goal is to make your online shopping experience feel less like a transaction and more like discovering a valuable investment.
+                <a href="{% url 'products' %}" class="btn btn-lg mt-3" style="background-color: var(--grand-seller-dark-gold); color: white;">
+                    Explore Our Collection <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <hr class="my-5">
+
+    <section class="mb-5">
+        <h2 class="text-center mb-5 fw-bold">Our Core Values</h2>
+        <div class="row g-4">
+            
+            <div class="col-md-4">
+                <div class="value-card">
+                    <i class="bi bi-gem"></i>
+                    <h4>Uncompromising Quality</h4>
+                    <p class="text-secondary">Every item is vetted to ensure it meets our strict standard of craftsmanship and durability.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="value-card">
+                    <i class="bi bi-shield-lock"></i>
+                    <h4>Trust & Transparency</h4>
+                    <p class="text-secondary">We offer clear pricing, honest descriptions, and secure, reliable payment processing.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="value-card">
+                    <i class="bi bi-person-heart"></i>
+                    <h4>Customer Focus</h4>
+                    <p class="text-secondary">Our commitment extends beyond the sale with personalized support and dedicated assistance.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+{% endblock %}

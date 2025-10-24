@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
-from django.views.generic import ListView # CRITICAL IMPORT
+from django.views.generic import ListView
 from django.contrib import messages
 from django.conf import settings
 from django.template.loader import render_to_string, get_template
@@ -11,9 +11,10 @@ from datetime import datetime
 import stripe
 from weasyprint import HTML
 from decimal import Decimal
-# NOTE: Removed 'generate_random_signature' from import as it's no longer needed in views
+from core.models import Product, Category, Color, ProductVariant, Order, OrderItem, ContactMessage # Consolidated imports
+
 from .utils import create_grand_seller_stamp
-from .models import Product, ContactMessage, Order, Color, ProductVariant, OrderItem
+# CRITICAL IMPORT: Include Category model (already done above, removing redundancy)
 
 stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', 'sk_test_your_key')
 
@@ -23,34 +24,40 @@ def home(request):
     products = Product.objects.filter(stock__gt=0)[:3]
     return render(request, 'home.html', {'products': products})
 
-class ProductListView(ListView): # THIS IS THE CLASS THAT WAS FAILING TO LOAD
+class ProductListView(ListView):
     model = Product
     template_name = 'products.html'
     context_object_name = 'products'
     paginate_by = 10
+    
+    # Store the Category object here for use in get_context_data
+    selected_category_obj = None 
 
     def get_queryset(self):
+        # 1. Base Query: Get ALL in-stock products
         queryset = Product.objects.filter(stock__gt=0)
+        
         # Search
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
                 Q(name__icontains=query) | Q(description__icontains=query)
             )
-        # Filters
-        gender = self.request.GET.get('gender')
-        size = self.request.GET.get('size')
-        width = self.request.GET.get('width')
-        color = self.request.GET.get('color')
-        if gender:
-            queryset = queryset.filter(gender=gender)
-        if size:
-            queryset = queryset.filter(size=size)
-        if width:
-            queryset = queryset.filter(width=width)
-        if color:
-            queryset = queryset.filter(color__icontains=color)
-        # Sorting
+            
+        # 2. Filter by Category ID AND capture the object
+        category_id = self.request.GET.get('category')
+        if category_id:
+            try:
+                # Store the Category object as an instance attribute
+                self.selected_category_obj = Category.objects.get(id=category_id)
+                # Filter the queryset
+                queryset = queryset.filter(category=self.selected_category_obj)
+            except Category.DoesNotExist:
+                # If category ID is invalid, treat it as no filter
+                self.selected_category_obj = None
+            
+
+        # Sorting (Remains unchanged)
         sort = self.request.GET.get('sort', 'relevance')
         if sort == 'price_low':
             queryset = queryset.order_by('price')
@@ -58,18 +65,35 @@ class ProductListView(ListView): # THIS IS THE CLASS THAT WAS FAILING TO LOAD
             queryset = queryset.order_by('-price')
         elif sort == 'rating':
             queryset = queryset.order_by('-rating')
+            
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Pass all categories and ALL colors (for JS mapping)
+        context['categories'] = Category.objects.all()
+        context['all_colors'] = Color.objects.all()
+        
+        # CRITICAL FIX: Pass the Category object found in get_queryset()
+        context['selected_category'] = self.selected_category_obj
+        
+        # Pass the currently selected filter values for persistence
+        context['selected_color'] = self.request.GET.get('color')
+        
+        # Pass total product count for 'Products (Total)' on the main page
+        context['all_products_count'] = Product.objects.count()
+        
         context['query'] = self.request.GET.get('q', '')
         return context
 
 def product_detail(request, pk):
+    # ... (remains unchanged)
     product = get_object_or_404(Product, pk=pk, stock__gt=0)
     variants = ProductVariant.objects.filter(product=product, stock__gt=0)
     return render(request, 'product_detail.html', {'product': product, 'variants': variants})
 
+# ... (rest of the views: contact, add_to_cart, remove_from_cart, cart, update_cart, checkout, payment_success_view, receipt_page, download_receipt_pdf) ...
 def contact(request):
     if request.method == 'POST':
         ContactMessage.objects.create(
@@ -148,6 +172,7 @@ def cart(request):
         cart = {}
     total = sum(item['price'] * item['quantity'] for item in cart.values())
     return render(request, 'cart.html', {'cart': cart, 'total': total})
+    
 def update_cart(request):
     if request.method == 'POST':
         key = request.POST.get('key')
@@ -166,6 +191,7 @@ def update_cart(request):
             line_total = cart[key]['price'] * quantity
             return JsonResponse({'success': True, 'new_total': total, 'line_total': line_total})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+    
 def checkout(request):
     cart = request.session.get('cart', {})
     if not cart:
@@ -336,3 +362,7 @@ def download_receipt_pdf(request, order_id):
     HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(response)
 
     return response
+
+def about_page(request):
+    return render(request, 'about.html')
+# REMOVED: The redundant function-based `product_list` is removed here.
