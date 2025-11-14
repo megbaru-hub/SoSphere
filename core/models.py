@@ -97,12 +97,23 @@ class ContactMessage(models.Model):
 
 # 3. PRODUCT MODEL (Updated with ForeignKey to Category)
 class Product(models.Model):
+    CONDITION_CHOICES = [
+        ('new', 'Brand New'),
+        ('used', 'Used'),
+    ]
+    
     category = models.ForeignKey(
         Category, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
         related_name='products'
+    )
+    condition = models.CharField(
+        max_length=4,
+        choices=CONDITION_CHOICES,
+        default='new',
+        help_text="Is this product new or used?"
     )
     
     name = models.CharField(max_length=100)

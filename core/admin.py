@@ -46,12 +46,8 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    # CRITICAL CHANGE 1: Added 'category' to list_display
-    list_display = ('name', 'category', 'price', 'stock', 'rating', 'is_available')
-    
-    # CRITICAL CHANGE 2: Added 'category' to list_filter to enable filtering by product type
-    list_filter = ('category', 'created_at', 'stock') 
-    
+    list_display = ('name', 'category', 'condition', 'price', 'stock', 'rating', 'is_available')
+    list_filter = ('category', 'condition', 'created_at', 'stock')
     search_fields = ('name', 'description')
     inlines = [ProductVariantInline]
 

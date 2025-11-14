@@ -21,11 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-5q#t$%8lypq&3g5m80i&ib24s**vwokwfs!%$i+iz2tnyqb&o='
+CHAPA_SECRET_KEY = 'your_chapa_secret_key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.161.165.192','10.161.122.202','10.161.165.192']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

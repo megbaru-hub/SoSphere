@@ -17,7 +17,6 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     
     # STEP 2: Handles the AJAX POST request, processes payment/order, and returns redirect URL (JSON)
-    path('order/process/', views.payment_success_view, name='payment_success'), 
     
     # STEP 3: Renders the final receipt page (GET request after success)
     path('order/receipt/<int:order_id>/', views.receipt_page, name='receipt_page'),
@@ -25,6 +24,9 @@ urlpatterns = [
     # PDF Download
     path('receipt/download/<int:order_id>/pdf/', views.download_receipt_pdf, name='download_receipt_pdf'),
     path('update-cart/', views.update_cart, name='update_cart'),
-    path('payment-success/', views.payment_success_view, name='payment_success_view'),
+    
     path('about/', views.about_page, name='about'),
+    path('process_payment/', views.process_payment, name='process_payment'),
+    
+    
 ]

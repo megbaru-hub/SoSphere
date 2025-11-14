@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }} - Grand Seller{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
 {% block content %}
 
 <style>
@@ -29,17 +32,71 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         transform: translateY(-1px);
     }
+    /* Variant Thumbnails Container */
+    .variant-thumbnails {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 5px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .variant-thumbnails::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .variant-thumbnails::-webkit-scrollbar-thumb {
+        background-color: var(--grand-seller-gold);
+        border-radius: 3px;
+    }
+    
     .img-thumbnail-variant {
-        cursor: pointer;
-        border: 3px solid transparent;
-        transition: border-color 0.2s ease, transform 0.2s ease;
+        width: 70px;
+        height: 70px;
         object-fit: cover;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #fff;
+        position: relative;
+        flex-shrink: 0;
     }
     .img-thumbnail-variant:hover {
-        transform: scale(1.05);
+        border-color: var(--grand-seller-gold);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        z-index: 2;
     }
+    
     .img-thumbnail-variant.active {
-        border-color: var(--grand-seller-gold) !important;
+        border: 3px solid var(--grand-seller-dark-gold) !important;
+        box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.3), 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-3px) scale(1.05);
+        z-index: 3;
+        position: relative;
+    }
+    
+    /* Add a checkmark overlay for active variant */
+    .img-thumbnail-variant.active::after {
+        content: '✓';
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 22px;
+        height: 22px;
+        background: var(--grand-seller-dark-gold);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     .form-select {
         border-radius: 10px;
@@ -60,7 +117,7 @@
         <img id="productImage" src="{{ product.image.url|default:'https://via.placeholder.com/600x450?text=No+Image' }}" class="img-fluid rounded shadow" alt="{{ product.name }}" style="max-height: 450px; width: 100%; object-fit: cover;">
         
         {% if variants|length > 0 %}
-        <div class="mt-3 d-flex flex-wrap gap-2 justify-content-center">
+        <div class="variant-thumbnails">
             {% if product.image.url %}
             <img src="{{ product.image.url }}" 
                  class="img-thumbnail img-thumbnail-variant active" 
@@ -74,13 +131,13 @@
             
             {% for variant in variants %}
             <img src="{{ variant.image.url|default:product.image.url }}" 
-                 class="img-thumbnail img-thumbnail-variant" 
-                 alt="{{ variant.color.name }} Variant" 
+                 class="img-thumbnail img-thumbnail-variant {% if forloop.first %}active{% endif %}" 
+                 alt="{{ variant.color.name }}" 
                  data-id="{{ variant.id }}"
                  data-price="{{ variant.price|default:product.price }}"
                  data-image="{{ variant.image.url|default:product.image.url }}"
                  data-stock="{{ variant.stock }}"
-                 style="width: 75px; height: 75px;">
+                 title="{{ variant.color.name }}">
             {% endfor %}
         </div>
         {% endif %}
@@ -89,9 +146,38 @@
     <div class="col-md-6">
         <h1 class="mb-3 golden-text-heading">{{ product.name }}</h1>
         <p class="lead dark-golden-text fs-3 mb-2" id="productPrice">${{ product.price }}</p>
-        <p class="text-muted mb-3">
-            Stock: <span id="stockCount" class="badge bg-info">{{ product.stock }}</span> remaining
-        </p>
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 golden-text-heading">Availability</h5>
+                <div id="stockInfo" class="text-end">
+                    {% if variants %}
+                        {% with total=product.stock %}
+                            {% for variant in variants %}
+                                {% with total=total|add:variant.stock %}
+                                    {% if forloop.last %}
+                                        <div class="d-flex align-items-center justify-content-end">
+                                            <i class="bi bi-box-seam me-1"></i>
+                                            <span class="fw-bold">
+                                                <span id="variantStock" class="d-none">0</span>
+                                                <span id="totalStock">{{ total|default:0 }}</span> in stock
+                                                <small id="selectedVariantStock" class="text-muted d-none ms-2">
+                                                    (<span id="variantStockValue">0</span> in selected color)
+                                                </small>
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-end">
+                            <i class="bi bi-box-seam me-1"></i>
+                            <span class="fw-bold">{{ product.stock|default:0 }} in stock</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         <p class="text-secondary">{{ product.description }}</p>
 
         {% if variants %}
@@ -135,20 +221,69 @@ $(document).ready(function() {
     
     // Function to update all UI elements based on selected variant/thumbnail data
     function updateProductUI(data) {
-        // Update main image
-        $('#productImage').attr('src', data.image);
+        console.log('Updating UI with data:', data);
+        
+        // Update main image with fade effect
+        if (data.image) {
+            const $img = $('#productImage');
+            $img.css('opacity', '0.6');
+            setTimeout(() => {
+                $img.attr('src', data.image);
+                $img.css('opacity', '1');
+            }, 150);
+        }
         
         // Update price
-        $('#productPrice').text('$' + data.price);
+        if (data.price) {
+            $('#productPrice').text('$' + parseFloat(data.price).toFixed(2));
+        }
         
-        // Update stock
-        const stock = parseInt(data.stock);
-        $('#stockCount').text(stock);
-        $('#stockCount').removeClass('bg-info bg-warning').addClass(stock > 10 ? 'bg-info' : 'bg-warning');
+        // Update stock information
+        if (data.variantId) {
+            // If it's a variant, show both total and variant stock
+            const variantStock = parseInt(data.stock) || 0;
+            const totalStock = parseInt($('#totalStock').text()) || 0;
+            
+            // Update the display
+            $('#variantStockValue').text(variantStock);
+            
+            // Show/hide variant stock information
+            if (variantStock > 0) {
+                $('#selectedVariantStock').removeClass('d-none text-danger').addClass('d-inline');
+                
+                // Update colors based on stock level
+                const stockElement = $('#stockInfo .fw-bold');
+                stockElement.removeClass('text-warning text-danger').addClass('text-success');
+                
+                if (variantStock <= 10) {
+                    stockElement.removeClass('text-success').addClass('text-warning');
+                    if (variantStock <= 3) {
+                        stockElement.removeClass('text-warning').addClass('text-danger');
+                    }
+                }
+            } else {
+                $('#selectedVariantStock').removeClass('d-none').addClass('d-inline text-danger');
+                $('#stockInfo .fw-bold').removeClass('text-success text-warning').addClass('text-danger');
+            }
+        } else {
+            // For main product without variants
+            const stock = parseInt(data.stock) || 0;
+            const stockElement = $('#stockInfo .fw-bold');
+            
+            // Update colors based on stock level
+            stockElement.removeClass('text-warning text-danger').addClass('text-success');
+            
+            if (stock <= 10) {
+                stockElement.removeClass('text-success').addClass('text-warning');
+                if (stock === 0) {
+                    stockElement.removeClass('text-warning').addClass('text-danger');
+                }
+            }
+        }
         
         // Update quantity and button state
-        $('#quantityInput').attr('max', stock).val(Math.min(1, stock));
-        $('#addCartBtn').prop('disabled', stock === 0);
+        $('#quantityInput').attr('max', data.stock).val(Math.min(1, data.stock));
+        $('#addCartBtn').prop('disabled', data.stock === 0);
         
         // Update the form action for the correct product/variant
         if (data.id) {
@@ -161,6 +296,85 @@ $(document).ready(function() {
         }
     }
 
+    // Initialize the page with the main product data
+    $(document).ready(function() {
+        console.log('Initializing product page...');
+        
+        // Get the main product data from the template
+        const initialData = {
+            price: '{{ product.price }}',
+            image: '{{ product.image.url|default:"" }}',
+            stock: {{ product.stock|default:0 }}
+        };
+        
+        console.log('Initial product data:', initialData);
+        
+        // Initialize the UI with the main product data
+        updateProductUI(initialData);
+        
+        // If there are variants, select the first one by default
+        if ($('.img-thumbnail-variant').length > 0) {
+            const firstVariant = $('.img-thumbnail-variant').first();
+            if (firstVariant.length) {
+                firstVariant.trigger('click');
+            }
+        }
+        
+        // Set up variant selection with smooth scrolling
+        $('.img-thumbnail-variant').on('click', function() {
+            const $this = $(this);
+            
+            // Update active state with animation
+            $('.img-thumbnail-variant').removeClass('active');
+            $this.addClass('active');
+            
+            // Scroll to make the selected variant visible
+            const container = $this.parent();
+            const containerWidth = container.width();
+            const scrollLeft = $this.position().left + container.scrollLeft() - (containerWidth / 2) + ($this.width() / 2);
+            
+            container.animate({
+                scrollLeft: scrollLeft
+            }, 300);
+            
+            const variantData = {
+                variantId: $this.data('id'),
+                id: $this.data('id'),
+                price: $this.data('price'),
+                image: $this.data('image'),
+                stock: $this.data('stock')
+            };
+            
+            console.log('Variant selected:', variantData);
+            updateProductUI(variantData);
+            $('#variantSelect').val(variantData.id || '');
+        });
+        
+        // Set up dropdown change handler
+        $('#variantSelect').change(function() {
+            const selectedId = $(this).val();
+            if (selectedId) {
+                const variant = $('.img-thumbnail-variant[data-id="' + selectedId + '"]');
+                if (variant.length) {
+                    variant.trigger('click');
+                }
+            } else {
+                // Reset to main product
+                updateProductUI(initialData);
+                $('.img-thumbnail-variant').removeClass('active border-2 border-warning');
+                $('.img-thumbnail-variant[data-id=""]').addClass('active border-2 border-warning');
+                $('#selectedVariantStock').addClass('d-none');
+                $('#stockInfo .fw-bold').removeClass('text-warning text-danger').addClass('text-success');
+            }
+        });
+        
+        // Log the final state
+        setTimeout(function() {
+            console.log('Stock element:', document.getElementById('stockCount')?.outerHTML);
+            console.log('Message element:', document.getElementById('stockMessage')?.outerHTML);
+        }, 200);
+    });
+    
     // --- Event Handlers ---
     
     // 1. Thumbnail Click Handler

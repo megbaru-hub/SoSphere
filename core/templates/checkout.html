@@ -1,12 +1,15 @@
 {% extends 'base.html' %}
-{% load math_filters %}
 {% load static %}
+{% load math_filters %}
 
-{% block title %}Checkout - Grand Seller{% endblock %}
+{% block title %}Secure Checkout - Grand Seller{% endblock %}
 
 {% block content %}
 <style>
-    /* Enhanced Golden Color Variables */
+    /* ========================================================
+    BEST PRACTICE CSS STYLING
+    ========================================================
+    */
     :root {
         --grand-seller-gold: #FFD700;        /* Primary Gold */
         --grand-seller-dark-gold: #DAA520;   /* Darker Gold for accents */
@@ -14,17 +17,25 @@
         --grand-seller-shadow-gold: rgba(255, 215, 0, 0.3); /* Golden shadow */
         --error-red: #dc3545;
         --success-green: #28a745;
-        --warning-yellow: #ffc107;
     }
 
-    /* General Layout & Steps */
+    /* Step Transitions */
     .step { 
         transition: opacity 0.4s ease-in-out, transform 0.4s ease; 
-        opacity: 1; transform: translateX(0);
+        opacity: 1; 
+        transform: translateX(0);
+        min-height: 400px; /* Ensure consistent height during transition */
     }
     .step.hidden { 
-        opacity: 0; transform: translateX(-20px); 
+        opacity: 0; 
+        position: absolute; 
+        left: 0;
+        right: 0;
+        z-index: -1;
+        pointer-events: none;
     }
+    
+    /* Typography */
     h1, h3 { 
         color: var(--grand-seller-bg-dark); 
         font-weight: 700; 
@@ -37,33 +48,35 @@
     .form-section { 
         border-radius: 12px; 
         padding: 25px; 
-        margin-bottom: 25px; 
         border: 1px solid #eee; 
         background-color: #fff; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        position: relative; 
     }
 
-    /* Progress Bar Enhancement */
+    /* Progress Bar */
     .progress { 
-        height: 8px; 
-        border-radius: 4px; 
+        height: 10px;
+        border-radius: 5px; 
         background-color: #e9ecef; 
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
     }
     .progress-bar { 
         background: linear-gradient(90deg, var(--grand-seller-dark-gold), var(--grand-seller-gold)) !important; 
-        transition: width 0.4s ease, box-shadow 0.3s ease; 
-        box-shadow: 0 0 5px var(--grand-seller-shadow-gold);
-    }
-    .progress-bar:hover { 
-        box-shadow: 0 0 15px var(--grand-seller-shadow-gold); 
+        transition: width 0.4s cubic-bezier(0.2, 0.8, 0.5, 1);
+        box-shadow: 0 0 8px var(--grand-seller-shadow-gold);
     }
 
-    /* Form Elements (Enhanced Focus/Active) */
-    .form-control:focus, .form-select:focus, #card-element.StripeElement--focus, #card-expiry.StripeElement--focus, #card-cvc.StripeElement--focus {
-        border-color: var(--grand-seller-dark-gold);
-        box-shadow: 0 0 0 0.2rem var(--grand-seller-shadow-gold); /* Golden glow */
-        transform: translateY(-1px); /* Subtle lift */
+    /* Form Elements & Focus */
+    .form-control, .form-select, .stripe-element {
+        border-radius: 8px !important;
+        padding: 12px 15px !important;
+        font-size: 1rem;
+        transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    }
+    .form-control:focus, .form-select:focus, .StripeElement--focus {
+        border-color: var(--grand-seller-dark-gold) !important;
+        box-shadow: 0 0 0 0.2rem var(--grand-seller-shadow-gold) !important;
+        transform: translateY(-1px);
     }
     .input-group-text {
         background-color: var(--grand-seller-bg-dark); 
@@ -71,150 +84,109 @@
         border-right: none;
         border-radius: 8px 0 0 8px !important;
         font-weight: 500;
+        padding: 0 15px;
     }
     .input-group .form-control {
         border-left: none;
         border-radius: 0 8px 8px 0 !important;
     }
-
-    /* Buttons (Golden Accents with Enhanced Transitions) */
+    .stripe-element {
+        border: 1px solid #ced4da; /* Consistent border for Stripe fields */
+        background-color: #fff;
+    }
+    
+    /* Buttons */
+    .btn {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
     .btn-checkout-primary { 
         background: linear-gradient(135deg, var(--grand-seller-dark-gold), var(--grand-seller-gold)); 
         border-color: var(--grand-seller-dark-gold);
         color: #fff;
-        font-weight: 600;
+        font-weight: 700;
         border-radius: 50px;
         padding: 12px 30px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth easing */
-        box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+        transition: all 0.3s;
+        box-shadow: 0 6px 20px rgba(218, 165, 32, 0.4);
     }
-    .btn-checkout-primary:hover {
-        background: linear-gradient(135deg, var(--grand-seller-gold), var(--grand-seller-dark-gold));
-        color: var(--grand-seller-bg-dark);
+    .btn-checkout-primary:hover:not(:disabled) {
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5); 
     }
-    .btn-checkout-primary:disabled {
-        background: #6c757d;
-        border-color: #6c757d;
-        transform: none;
-        box-shadow: none;
-    }
-    
     .btn-checkout-success {
-        background: linear-gradient(135deg, var(--grand-seller-bg-dark), #333d4a); 
+        background-color: var(--grand-seller-bg-dark); 
         border-color: var(--grand-seller-bg-dark);
         color: var(--grand-seller-gold);
-        font-weight: 600;
+        font-weight: 700;
         border-radius: 50px;
         padding: 12px 30px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(34, 40, 49, 0.3);
+        transition: all 0.3s;
+        box-shadow: 0 6px 20px rgba(34, 40, 49, 0.4);
     }
     .btn-checkout-success:hover:not(:disabled) {
-        background: linear-gradient(135deg, #333d4a, var(--grand-seller-bg-dark));
-        color: var(--grand-seller-gold);
+        background-color: #333d4a;
+        border-color: #333d4a;
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(34, 40, 49, 0.4);
+        box-shadow: 0 8px 25px rgba(34, 40, 49, 0.5);
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
-    /* Back Button (Secondary with Subtle Enhancement) */
-    .btn-secondary {
-        border-radius: 50px;
-        padding: 10px 25px;
-        font-weight: 600;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .btn-secondary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-
-    /* Stripe/External Fields Enhancement */
-    #card-element, #card-expiry, #card-cvc {
-        border: 2px solid #ced4da;
-        padding: 12px 15px;
-        background-color: #fff;
-        border-radius: 8px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    #card-element:focus-within, #card-expiry:focus-within, #card-cvc:focus-within {
-        border-color: var(--grand-seller-dark-gold);
-        box-shadow: 0 0 0 0.2rem var(--grand-seller-shadow-gold);
-    }
-    
-    /* Error/Validation Styling Enhancement */
+    /* Errors */
     .is-invalid { 
         border-color: var(--error-red) !important; 
         box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-        animation: shake 0.5s ease-in-out;
-    }
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
     }
     .invalid-feedback { 
         color: var(--error-red); 
-        font-size: 0.875rem; 
+        font-size: 0.9rem;
         font-weight: 600; 
-        margin-top: 0.25rem;
+        margin-top: 0.5rem;
         display: block;
     }
     .error-bar {
-        background: linear-gradient(135deg, #f8d7da, #f5c2c7);
+        background: #f8d7da;
         border: 1px solid #f5c6cb;
         border-radius: 8px;
         color: #721c24;
         padding: 1rem;
-        margin-bottom: 1rem;
+        margin-top: 1rem;
         display: none;
-        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.1);
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.15);
     }
     .error-bar.show {
         display: block;
-        animation: slideDown 0.3s ease;
-    }
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Success Messages Enhancement */
-    .alert-success {
-        background: linear-gradient(135deg, #d4edda, #c3e6cb);
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        color: #155724;
-        box-shadow: 0 2px 5px rgba(40, 167, 69, 0.1);
     }
 </style>
 
 <div class="container my-5">
     <h1 class="my-4">Secure Checkout</h1>
-    <p class="lead mb-4">Order Total: ${{ total|floatformat:2 }}</p>
+    <p class="lead mb-4">Order Total: $<span id="orderTotalDisplay">{{ total|floatformat:2 }}</span></p>
 
-    <div class="progress mb-4" style="height: 10px;">
-        <div class="progress-bar" role="progressbar" style="width: 50%;"></div>
+    <div class="progress mb-5">
+        <div class="progress-bar" role="progressbar" id="checkout-progress-bar" style="width: 50%;"></div>
     </div>
 
     <form method="post" id="checkoutForm">
         {% csrf_token %}
         
-        <div id="step1" class="step active form-section shadow-sm">
+        <div id="step1" class="step form-section">
             <h3>1. Customer & Delivery Information</h3>
             <div class="row">
                 <div class="col-md-6">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">Full Name <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control" name="name" placeholder="Your Name" required>
+                            <input type="text" class="form-control" name="name" placeholder="Your Name" required autofocus>
                         </div>
                         <div class="invalid-feedback" id="nameError"></div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
@@ -224,38 +196,33 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">Phone Number <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">+251</span>
-                            <input type="tel" class="form-control" name="phone" placeholder="9XXXXXXXX" title="Please fill out this field" required>
+                            <span class="input-group-text">+251</span> 
+                            <input type="tel" class="form-control" name="phone" placeholder="9XXXXXXXX or 7XXXXXXXX" required maxlength="9" pattern="[97][0-9]{8}">
                         </div>
                         <div class="invalid-feedback" id="phoneError"></div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">City <span class="text-danger">*</span></label>
                         <select class="form-select" id="citySelect" name="city" required>
                             <option value="">Select City</option>
                             <option value="addis-ababa">Addis Ababa</option>
                             <option value="adama">Adama</option>
-                            <option value="aleha">Aleha</option>
-                            <option value="debre-markos">Debre Markos</option>
-                            <option value="Debre-Berhan">Debre Berhan</option>
-                            <option value="dire-dawa">Dire Dawa</option>
-                            <option value="mekelle">Mekelle</option>
                             <option value="gondar">Gondar</option>
                             <option value="bahir-dar">Bahir Dar</option>
                             <option value="hawassa">Hawassa</option>
-                            <option value="dessie">Dessie</option>
+                            <option value="mekelle">Mekelle</option>
+                            <option value="dire-dawa">Dire Dawa</option>
                             <option value="jimma">Jimma</option>
-                            <option value="awassa">Awassa (Sidama)</option>
                             <option value="other">Other (specify below)</option>
                         </select>
                         <div class="invalid-feedback" id="cityError"></div>
                     </div>
-                    <div class="mb-3" id="otherCityField" style="display:none;">
+                    <div class="mb-4" id="otherCityField" style="display:none;">
                         <label class="form-label">Other City <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="other_city" placeholder="Your City" required>
+                        <input type="text" class="form-control" name="other_city" placeholder="Specify your city">
                         <div class="invalid-feedback" id="otherCityError"></div>
                     </div>
                 </div>
@@ -264,58 +231,57 @@
             <button type="button" id="nextBtn" class="btn btn-checkout-primary float-end">
                 Next Step <i class="bi bi-arrow-right-circle-fill"></i>
             </button>
-            <div id="step1Error" class="error-bar mt-2" style="display:none;"></div>
+            <div id="step1Error" class="error-bar"></div>
         </div>
 
-        <div id="step2" class="step form-section shadow-sm" style="display:none;">
+        <div id="step2" class="step form-section hidden">
             <h3>2. Payment Method</h3>
             <div class="mb-4">
                 <label class="form-label">Choose Method <span class="text-danger">*</span></label>
                 <select class="form-select" name="payment_method" id="methodSelect" required>
                     <option value="">Select...</option>
-                    <option value="TEST_SUCCESS">TEST PAYMENT (Bypass)</option>
-                    <option value="cbe">CBE (Commercial Bank of Ethiopia)</option>
-                    <option value="abyssinia">Abyssinia Bank</option>
-                    <option value="telebirr">TeleBirr</option>
-                    <option value="mpesa">M-Pesa</option>
-                    <option value="card">International Credit/Debit Card</option>
+                    <option value="TEST_SUCCESS">TEST PAYMENT (Bypass Gateway)</option>
+                    <option value="telebirr">TeleBirr (Chapa)</option>
+                    <option value="cbe">CBE Birr/Bank (Chapa)</option>
+                    <option value="abyssinia">Abyssinia Bank (Chapa)</option>
+                    <option value="mpesa">M-Pesa (Chapa)</option>
+                    <option value="card">International Card (Stripe)</option>
                 </select>
                 <div class="invalid-feedback" id="methodError"></div>
             </div>
 
-            <div id="localPaymentFields" style="display:none;">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> <small>For local banks/wallets, you'll be redirected to their secure page after confirmation.</small>
-                </div>
+            <div id="localPaymentFields" class="alert alert-info" style="display:none;">
+                <i class="bi bi-info-circle"></i> <small>You will be securely redirected to the external payment gateway to complete the transaction.</small>
             </div>
 
             <div id="cardSection" style="display:none;">
-                <h5 class="mb-3">Card Details</h5>
+                <h5 class="mb-3">Card Details (Stripe Secured)</h5>
                 <div class="mb-3">
                     <label class="form-label">Card Number</label>
-                    <div id="card-element"></div>
+                    <div id="card-element" class="stripe-element"></div>
                 </div>
                 <div class="row">
                     <div class="col-6 mb-3">
                         <label class="form-label">Expiry (MM/YY)</label>
-                        <div id="card-expiry"></div>
+                        <div id="card-expiry" class="stripe-element"></div>
                     </div>
                     <div class="col-6 mb-3">
                         <label class="form-label">CVC</label>
-                        <div id="card-cvc"></div>
+                        <div id="card-cvc" class="stripe-element"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between mt-4">
+            <div id="errorMessage" class="error-bar"></div>
+
+            <div class="d-flex justify-content-between mt-5">
                 <button type="button" id="backBtn" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back
                 </button>
                 <button type="submit" class="btn btn-checkout-success" id="payButton" disabled>
-                    Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>
+                    Pay $<span id="payButtonTotal">{{ total|floatformat:2 }}</span> <i class="bi bi-lock-fill"></i>
                 </button>
             </div>
-            <div id="errorMessage" class="alert alert-danger mt-3" style="display:none;"></div>
         </div>
     </form>
 </div>
@@ -325,9 +291,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script>
-// =========================================================================
-// CRITICAL CSRF FIX: Read CSRF token from cookie for FormData injection
-// =========================================================================
+// CRITICAL CSRF FIX: Function to securely get CSRF token from cookie
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -342,13 +306,15 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-// Get the token once on page load
 const csrftoken = getCookie('csrftoken');
-// =========================================================================
 
 
+// --- Initialization ---
+// NOTE: Replace 'pk_test_dummy' with your actual Django setting 
 const stripe = Stripe('{{ STRIPE_PUBLISHABLE_KEY|default:"pk_test_dummy" }}');
 const elements = stripe.elements();
+const totalAmount = $('#orderTotalDisplay').text(); // Get amount for display on the button
+
 const cardStyle = { 
     base: { 
         fontSize: '16px', 
@@ -356,6 +322,8 @@ const cardStyle = {
         '::placeholder': { color: '#aab7c4' } 
     } 
 };
+
+// Create and mount Stripe elements only once
 const card = elements.create('cardNumber', {style: cardStyle});
 card.mount('#card-element');
 const expiry = elements.create('cardExpiry', {style: cardStyle});
@@ -364,123 +332,129 @@ const cvc = elements.create('cardCvc', {style: cardStyle});
 cvc.mount('#card-cvc');
 
 let currentStep = 1;
+const CHAPA_METHODS = ['cbe', 'abyssinia', 'telebirr', 'mpesa'];
 
-// City dropdown logic
-$('#citySelect').change(function() {
+// --- Step 1 Field Logic (City Dropdown) ---
+$('#citySelect').on('change', function() {
     const isOther = $(this).val() === 'other';
     $('#otherCityField').toggle(isOther);
-    $('input[name="other_city"]').prop('required', isOther).val(isOther ? $('input[name="other_city"]').val() : '');
+    // Use .prop() for required attribute consistency
+    $('input[name="other_city"]').prop('required', isOther); 
+    if (!isOther) {
+        $('input[name="other_city"]').val(''); // Clear value if not 'other'
+        $('input[name="other_city"]').removeClass('is-invalid'); // Clear validation
+    }
 });
 
-// Validation function 
+// --- Validation and Error Helpers ---
+function clearValidation() {
+    $('.form-control, .form-select').removeClass('is-invalid');
+    $('.invalid-feedback').text('').hide();
+    $('.error-bar').hide().removeClass('show').text('');
+}
+
 function validateStep1() {
     let isValid = true;
-    
-    // Clear previous errors
-    $('#step1 .form-control, #step1 .form-select').removeClass('is-invalid');
-    $('#step1 .invalid-feedback').hide();
-    $('#step1Error').hide().removeClass('alert-danger');
+    clearValidation(); // Clear all previous errors first
 
-    // Name
-    if (!$('input[name="name"]').val().trim()) {
-        $('input[name="name"]').addClass('is-invalid');
-        $('#nameError').text('Full name is required.').show();
-        isValid = false;
-    }
+    // Check all required fields
+    $('#step1 :required').each(function() {
+        const input = $(this);
+        const name = input.attr('name');
+        const value = input.val().trim();
+        const errorElement = $(`#${name}Error`);
 
-    // Email
-    const email = $('input[name="email"]').val().trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-        $('input[name="email"]').addClass('is-invalid');
-        $('#emailError').text('Valid email is required.').show();
-        isValid = false;
-    }
-
-    // Phone
-    const phone = $('input[name="phone"]').val().trim();
-    const phoneRegex = /^[0-9]{9,9}$/;
-    const first_number = phone.charAt(0);
-    if (!phone || !phoneRegex.test(phone) || (first_number !== '9' && first_number !== '7')) {
-        $('input[name="phone"]').addClass('is-invalid');
-        $('#phoneError').text('9 digit phone number required (must start with 9 or 7).').show();
-        isValid = false;
-    }
-
-    // City
-    const city = $('#citySelect').val();
-    if (!city) {
-        $('#citySelect').addClass('is-invalid');
-        $('#cityError').text('City is required.').show();
-        isValid = false;
-    } else if (city === 'other' && !$('input[name="other_city"]').val().trim()) {
-        $('input[name="other_city"]').addClass('is-invalid');
-        $('#otherCityError').text('Other city name is required.').show();
-        isValid = false;
-    }
+        if (!value) {
+            input.addClass('is-invalid');
+            errorElement.text(`${input.closest('div').find('label').text().replace(' *', '').trim()} is required.`).show();
+            isValid = false;
+        } else {
+            // Specific validation
+            if (name === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                input.addClass('is-invalid');
+                errorElement.text('Enter a valid email address.').show();
+                isValid = false;
+            }
+            if (name === 'phone' && !/^(9|7)[0-9]{8}$/.test(value)) {
+                input.addClass('is-invalid');
+                errorElement.text('Phone must be 9 digits (starting with 9 or 7).').show();
+                isValid = false;
+            }
+            if (name === 'other_city' && $('#citySelect').val() === 'other' && !value) {
+                input.addClass('is-invalid');
+                errorElement.text('Please specify the city name.').show();
+                isValid = false;
+            }
+        }
+    });
 
     if (!isValid) {
-        $('#step1Error').text('Please correct the errors above before proceeding.').show().addClass('alert-danger');
+        $('#step1Error').text('Please correct the highlighted errors before proceeding.').addClass('show');
     }
 
     return isValid;
 }
 
-// Next button handler
+// --- Step Transition Handlers ---
 $('#nextBtn').click(function() {
     if (validateStep1()) {
-        $('#step1').fadeOut(300);
-        setTimeout(() => {
-            $('#step2').fadeIn(300);
-            currentStep = 2;
-            $('.progress-bar').css('width', '100%');
-        }, 300);
+        $('#step1').addClass('hidden');
+        $('#step2').removeClass('hidden');
+        currentStep = 2;
+        $('#checkout-progress-bar').css('width', '100%');
     }
 });
 
-// Back button handler
 $('#backBtn').click(function() {
-    $('#step2').fadeOut(300);
-    setTimeout(() => {
-        $('#step1').fadeIn(300);
-        currentStep = 1;
-        $('.progress-bar').css('width', '50%');
-    }, 300);
+    $('#step2').addClass('hidden');
+    $('#step1').removeClass('hidden');
+    currentStep = 1;
+    $('#checkout-progress-bar').css('width', '50%');
+    clearValidation(); // Clear errors when moving back
 });
 
-// Payment method change handler
-$('#methodSelect').change(function() {
+// --- Step 2 Payment Method Change Handler ---
+$('#methodSelect').on('change', function() {
     const method = $(this).val();
+    clearValidation(); // Clear any previous errors
+
+    // Hide all extra fields
     $('#localPaymentFields, #cardSection').hide();
     
+    // Disable button if no method selected
     $('#payButton').prop('disabled', !method); 
-    
+
+    // Update UI based on selection
+    let buttonText = `Pay \$${totalAmount} <i class="bi bi-lock-fill"></i>`;
+    let buttonIcon = '<i class="bi bi-lock-fill"></i>';
+
     if (method === 'card') {
         $('#cardSection').fadeIn();
-        $('#payButton').html('Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>');
-    } else if (method) {
+    } else if (CHAPA_METHODS.includes(method) || method === 'TEST_SUCCESS') {
         $('#localPaymentFields').fadeIn();
-        
-        let buttonText = `Redirect to ${method.toUpperCase()}`;
-        let icon = '<i class="bi bi-arrow-up-right-square"></i>';
-
-        // Custom text for the test option
-        if (method === 'TEST_SUCCESS') {
-            buttonText = 'Proceed with Test Payment';
-            icon = '<i class="bi bi-check-circle-fill"></i>';
-        } else if (method === 'telebirr') {
-             icon = '<i class="bi bi-phone"></i>';
-        } else if (method === 'cbe' || method === 'abyssinia') {
-             icon = '<i class="bi bi-bank"></i>';
-        }
-
-        $('#payButton').html(`${buttonText} ${icon}`);
-    } else {
-         $('#payButton').html('Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>');
+        buttonText = `Proceed to ${method === 'TEST_SUCCESS' ? 'Test' : method.toUpperCase()}`;
+        buttonIcon = '<i class="bi bi-arrow-up-right-square"></i>';
     }
+
+    $('#payButton').html(`${buttonText} ${buttonIcon}`);
 });
 
-// Form submission handler
+// --- Function to reset the pay button state ---
+function resetPayButton(method) {
+    const buttonElement = $('#payButton');
+    
+    let buttonText = `Pay \$${totalAmount}`;
+    let buttonIcon = '<i class="bi bi-lock-fill"></i>';
+    
+    if (method && (CHAPA_METHODS.includes(method) || method === 'TEST_SUCCESS')) {
+        buttonText = `Proceed to ${method === 'TEST_SUCCESS' ? 'Test' : method.toUpperCase()}`;
+        buttonIcon = '<i class="bi bi-arrow-up-right-square"></i>';
+    }
+    
+    buttonElement.prop('disabled', false).html(`${buttonText} ${buttonIcon}`);
+}
+
+// --- Form Submission Handler ---
 $('#checkoutForm').submit(function(e) {
     e.preventDefault();
     if (currentStep !== 2) return;
@@ -492,81 +466,71 @@ $('#checkoutForm').submit(function(e) {
         return;
     }
 
-    $('#methodSelect').removeClass('is-invalid');
-    $('#methodError').hide();
-    $('#errorMessage').hide();
-    $('#payButton').prop('disabled', true); 
+    clearValidation();
+    $('#payButton').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
 
-    // Helper to extract data common to all methods, including the CSRF token
+    // Helper to extract common data
     const getCommonFormData = () => {
         const formData = new FormData();
-        // ADD THE CSRF TOKEN DIRECTLY to the FormData object
         formData.append('csrfmiddlewaretoken', csrftoken); 
         
         formData.append('name', $('input[name="name"]').val());
         formData.append('email', $('input[name="email"]').val());
         formData.append('phone', $('input[name="phone"]').val());
-        formData.append('city', $('#citySelect').val());
-        if ($('#citySelect').val() === 'other') formData.append('other_city', $('input[name="other_city"]').val());
+        formData.append('city', $('#citySelect').val() === 'other' ? $('input[name="other_city"]').val() : $('#citySelect').val());
+        formData.append('payment_method', method);
+        // CRITICAL: Send for display/logging, but backend must calculate charge amount!
+        formData.append('client_total', totalAmount); 
         return formData;
     };
 
-
     if (method === 'card') {
-        // Use createToken() for consistency with Django view's 'stripeToken' key
-        stripe.createToken(card, {
-            name: $('input[name="name"]').val(),
-            address_city: $('#citySelect').val() === 'other' ? $('input[name="other_city"]').val() : $('#citySelect').val(),
-        }).then(function(result) {
+        // Stripe Path
+        stripe.createToken(card).then(function(result) {
             if (result.error) {
-                $('#errorMessage').text(result.error.message).show();
-                $('#payButton').prop('disabled', false).html('Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>');
+                $('#errorMessage').text(result.error.message).addClass('show');
+                resetPayButton(method);
             } else {
                 const formData = getCommonFormData();
-                formData.append('payment_method', method); 
-                formData.append('stripeToken', result.token.id); // Send the token ID
-                submitPayment(formData);
+                formData.append('stripeToken', result.token.id); 
+                submitPayment(formData, method);
             }
         });
     } else {
-        // For Test or Local Payment Methods
+        // Chapa or Test Payment Path
         const formData = getCommonFormData();
-        formData.append('payment_method', method);
-        submitPayment(formData);
+        submitPayment(formData, method);
     }
 });
 
 // AJAX submission for all payment types
-function submitPayment(formData) {
+function submitPayment(formData, method) {
     $.ajax({
         type: 'POST',
-        url: "{% url 'payment_success_view' %}",
+        // IMPORTANT: Ensure this Django URL is defined in your urls.py
+        url: "{% url 'process_payment' %}", 
         data: formData,
         processData: false,
         contentType: false,
-        // The token is in formData, so no need for X-CSRFToken header
         success: function(data) {
-            if (data.success) {
+            if (data.success && data.redirect_url) {
+                // Redirect for Chapa (or final success page)
                 window.location.href = data.redirect_url; 
             } else {
-                $('#errorMessage').text(data.message || 'Payment failed. Please try again or choose another method.').show();
-                $('#payButton').prop('disabled', false).html(
-                    `Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>`
-                );
+                // Payment initialization/attempt failed or unexpected response
+                $('#errorMessage').text(data.message || 'Payment processing failed. Please try again.').addClass('show');
+                resetPayButton(method);
             }
         },
-        error: function(xhr, status, error) {
+        error: function(xhr) {
             let errorMsg = 'Network error or server issue. Please try again.';
             if (xhr.status === 403) {
-                 // Explicitly handle the 403 error in case the cookie failed
                  errorMsg = 'Security Error (403 Forbidden). Please refresh the page and try again.';
             } else if (xhr.responseJSON && xhr.responseJSON.message) {
                  errorMsg = xhr.responseJSON.message;
             }
-            $('#errorMessage').text(errorMsg).show();
-            $('#payButton').prop('disabled', false).html(
-                `Pay ${{ total|floatformat:2 }} <i class="bi bi-lock-fill"></i>`
-            );
+            $('#errorMessage').text(errorMsg).addClass('show');
+            resetPayButton(method);
         }
     });
 }

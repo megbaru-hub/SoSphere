@@ -38,7 +38,8 @@ class ProductListView(ListView):
     selected_category_obj = None 
 
     def get_queryset(self):
-        queryset = Product.objects.filter(stock__gt=0)
+        # Explicitly include all fields we need in the queryset
+        queryset = Product.objects.filter(stock__gt=0).select_related('category')
         
         query = self.request.GET.get('q')
         if query:
@@ -53,6 +54,13 @@ class ProductListView(ListView):
                 queryset = queryset.filter(category=self.selected_category_obj)
             except Category.DoesNotExist:
                 self.selected_category_obj = None
+                
+        condition = self.request.GET.get('condition')
+        if condition in ['new', 'used']:
+            queryset = queryset.filter(condition=condition)
+            
+        # Ensure we're getting all necessary fields
+        queryset = queryset.only('id', 'name', 'description', 'price', 'stock', 'image', 'condition', 'rating', 'category__name')
             
 
         sort = self.request.GET.get('sort', 'relevance')
@@ -81,9 +89,24 @@ class ProductListView(ListView):
         return context
 
 def product_detail(request, pk):
-    product = get_object_or_404(Product, pk=pk, stock__gt=0)
-    variants = ProductVariant.objects.filter(product=product, stock__gt=0)
-    return render(request, 'product_detail.html', {'product': product, 'variants': variants})
+    product = get_object_or_404(Product, pk=pk)
+    variants = ProductVariant.objects.filter(product=product)
+    
+    # Debug information
+    print(f"Product ID: {product.id}, Name: {product.name}, Stock: {product.stock}")
+    for i, variant in enumerate(variants, 1):
+        print(f"Variant {i}: ID={variant.id}, Color={variant.color.name if variant.color else 'N/A'}, Stock={variant.stock}")
+    
+    return render(request, 'product_detail.html', {
+        'product': product, 
+        'variants': variants,
+        'debug_info': {
+            'product_stock': product.stock,
+            'has_variants': variants.exists(),
+            'variants_count': variants.count(),
+            'variants_stock': [{'id': v.id, 'stock': v.stock} for v in variants]
+        }
+    })
 
 def contact(request):
     if request.method == 'POST':
@@ -399,3 +422,4 @@ def download_receipt_pdf(request, order_id):
 
 def about_page(request):
     return render(request, 'about.html')
+
