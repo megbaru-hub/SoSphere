@@ -7,10 +7,13 @@ from django.template.loader import get_template
 from django.urls import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 import stripe
 from weasyprint import HTML
 from decimal import Decimal
+import json
+import uuid
 
 # CRITICAL NEW IMPORTS: These must be present and correctly spelled!
 import requests # Required for making external API calls to Chapa
@@ -345,15 +348,21 @@ def process_payment(request):
     
     try:
         # Create main Order
-        main_order = Order.objects.create(
+        main_order = Order(
             buyer_name=checkout_data['name'],
             buyer_email=checkout_data['email'],
             buyer_phone=checkout_data['phone'],
             buyer_city=checkout_data['city'],
             payment_method=payment_method,
             total=grand_total,
-            payment_status='Completed', 
+            payment_status='Pending',  # Will be updated by webhook for Chapa payments
         )
+        
+        # For Chapa payments, set the tx_ref and save with it
+        if payment_method in ['cbe', 'abyssinia', 'telebirr', 'mpesa']:
+            main_order.tx_ref = tx_ref  # Using the same tx_ref from Chapa API call
+        
+        main_order.save()
         latest_order_id = main_order.id 
         
         # Create OrderItems and update stock
@@ -422,4 +431,71 @@ def download_receipt_pdf(request, order_id):
 
 def about_page(request):
     return render(request, 'about.html')
+
+@csrf_exempt
+def chapa_webhook(request):
+    """
+    Handles Chapa payment webhook notifications.
+    This endpoint is called by Chapa when a payment status changes.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        # Get the JSON payload from Chapa
+        payload = json.loads(request.body)
+        
+        # Verify the transaction reference
+        tx_ref = payload.get('tx_ref')
+        if not tx_ref:
+            return JsonResponse({'error': 'Missing transaction reference'}, status=400)
+        
+        # Get the transaction status
+        status = payload.get('status')
+        
+        if status == 'success':
+            # Find the order by the transaction reference
+            try:
+                order = Order.objects.get(tx_ref=tx_ref)
+                if order.payment_status != 'Completed':
+                    order.payment_status = 'Completed'
+                    order.save()
+                    # Here you can add additional logic like sending confirmation emails
+                    print(f"Order {order.id} marked as paid via Chapa webhook")
+            except Order.DoesNotExist:
+                # Log the unknown transaction for investigation
+                print(f"Webhook received for unknown order: {tx_ref}")
+        
+        return JsonResponse({'status': 'success'}, status=200)
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        print(f"Error in chapa_webhook: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+def payment_callback(request, tx_ref):
+    """
+    Handles the return URL after Chapa payment.
+    This is where the user is redirected after completing the payment on Chapa's page.
+    """
+    try:
+        # Find the order by the transaction reference
+        order = Order.objects.get(tx_ref=tx_ref)
+        
+        if order.payment_status == 'Completed':
+            # Clear the cart if payment was successful
+            if 'cart' in request.session:
+                del request.session['cart']
+            
+            # Redirect to the receipt page
+            return redirect('receipt_page', order_id=order.id)
+        else:
+            # Payment not completed, show an error
+            messages.error(request, 'Payment was not completed successfully.')
+            return redirect('checkout')
+    
+    except Order.DoesNotExist:
+        messages.error(request, 'Order not found.')
+        return redirect('home')
 

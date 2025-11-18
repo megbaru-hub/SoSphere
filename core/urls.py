@@ -28,5 +28,7 @@ urlpatterns = [
     path('about/', views.about_page, name='about'),
     path('process_payment/', views.process_payment, name='process_payment'),
     
-    
+    # Chapa Payment Integration
+    path('webhook/chapa/', views.chapa_webhook, name='chapa_webhook'),
+    path('payment/callback/<str:tx_ref>/', views.payment_callback, name='payment_callback'),
 ]

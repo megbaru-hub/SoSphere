@@ -145,7 +145,7 @@
 
     <div class="col-md-6">
         <h1 class="mb-3 golden-text-heading">{{ product.name }}</h1>
-        <p class="lead dark-golden-text fs-3 mb-2" id="productPrice">${{ product.price }}</p>
+        <p class="lead dark-golden-text fs-3 mb-2" id="productPrice"><small>ETB</small> {{ product.price }}</p>
         <div class="mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 golden-text-heading">Availability</h5>
@@ -235,7 +235,7 @@ $(document).ready(function() {
         
         // Update price
         if (data.price) {
-            $('#productPrice').text('$' + parseFloat(data.price).toFixed(2));
+            $('#productPrice').text('ETB ' + parseFloat(data.price).toFixed(2));
         }
         
         // Update stock information

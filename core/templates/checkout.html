@@ -165,7 +165,7 @@
 
 <div class="container my-5">
     <h1 class="my-4">Secure Checkout</h1>
-    <p class="lead mb-4">Order Total: $<span id="orderTotalDisplay">{{ total|floatformat:2 }}</span></p>
+    <p class="lead mb-4">Order Total: <small>ETB</small> <span id="orderTotalDisplay">{{ total|floatformat:2 }}</span></p>
 
     <div class="progress mb-5">
         <div class="progress-bar" role="progressbar" id="checkout-progress-bar" style="width: 50%;"></div>
@@ -279,7 +279,7 @@
                     <i class="bi bi-arrow-left"></i> Back
                 </button>
                 <button type="submit" class="btn btn-checkout-success" id="payButton" disabled>
-                    Pay $<span id="payButtonTotal">{{ total|floatformat:2 }}</span> <i class="bi bi-lock-fill"></i>
+                    Pay <small>ETB</small> <span id="payButtonTotal">{{ total|floatformat:2 }}</span> <i class="bi bi-lock-fill"></i>
                 </button>
             </div>
         </div>
@@ -425,7 +425,7 @@ $('#methodSelect').on('change', function() {
     $('#payButton').prop('disabled', !method); 
 
     // Update UI based on selection
-    let buttonText = `Pay \$${totalAmount} <i class="bi bi-lock-fill"></i>`;
+    let buttonText = `Pay ETB ${totalAmount} <i class="bi bi-lock-fill"></i>`;
     let buttonIcon = '<i class="bi bi-lock-fill"></i>';
 
     if (method === 'card') {
@@ -443,7 +443,7 @@ $('#methodSelect').on('change', function() {
 function resetPayButton(method) {
     const buttonElement = $('#payButton');
     
-    let buttonText = `Pay \$${totalAmount}`;
+    let buttonText = `Pay ETB ${totalAmount}`;
     let buttonIcon = '<i class="bi bi-lock-fill"></i>';
     
     if (method && (CHAPA_METHODS.includes(method) || method === 'TEST_SUCCESS')) {

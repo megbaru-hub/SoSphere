@@ -112,7 +112,7 @@
         </div>
         <div class="col-md-6 text-md-end">
             <p><strong>Date of Purchase:</strong> {{ order_date|date:"F d, Y - H:i" }}</p>
-            <p><strong>Total Paid:</strong> ${{ total|floatformat:2 }}</p>
+            <p><strong>Total Paid:</strong> <small>ETB</small> {{ total|floatformat:2 }}</p>
             <p><strong>Payment Method:</strong> {{ order.payment_method|default:"N/A" }}</p>
         </div>
     </div>
@@ -131,15 +131,15 @@
             <tr>
                 <td>{{ item.name }}</td>
                 <td class="text-end">{{ item.quantity }}</td>
-                <td class="text-end">${{ item.price|floatformat:2 }}</td>
-                <td class="text-end">${{ item.subtotal|floatformat:2 }}</td>
+                <td class="text-end"><small>ETB</small> {{ item.price|floatformat:2 }}</td>
+                <td class="text-end"><small>ETB</small> {{ item.subtotal|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr class="fw-bold">
                 <td colspan="3" class="text-end">GRAND TOTAL</td>
-                <td class="text-end">${{ total|floatformat:2 }}</td>
+                <td class="text-end"><small>ETB</small> {{ total|floatformat:2 }}</td>
             </tr>
         </tfoot>
     </table>

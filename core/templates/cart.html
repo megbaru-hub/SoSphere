@@ -146,14 +146,14 @@
                                 </div>
                             </div>
                         </td>
-                        <td>${{ item.price|floatformat:2 }}</td>
+                        <td><small>ETB</small> {{ item.price|floatformat:2 }}</td>
                         <td>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.stock }}" data-key="{{ key }}" data-price="{{ item.price }}" onchange="updateQuantity(this)">
                                 <span class="input-group-text"> </span>
                             </div>
                         </td>
-                        <td class="line-total text-success fw-bold" id="line-total-{{ key }}">${{ item.price|floatformat:2|multiply:item.quantity|floatformat:2 }}</td>
+                        <td class="line-total text-success fw-bold" id="line-total-{{ key }}"><small>ETB</small> {{ item.price|floatformat:2|multiply:item.quantity|floatformat:2 }}</td>
                         <td>
                             <form method="post" action="{% url 'remove_from_cart' key %}" class="d-inline" onsubmit="return confirm('Remove {{ item.name }}?');">
                                 {% csrf_token %}
@@ -166,7 +166,7 @@
                 <tfoot class="grand-total-row">
                     <tr>
                         <td colspan="3" class="text-end"><strong>Grand Total</strong></td>
-                        <td colspan="2"><strong class="text-success fs-4" id="grand-total">${{ total|floatformat:2 }}</strong></td>
+                        <td colspan="2"><strong class="text-success fs-4" id="grand-total"><small>ETB</small> {{ total|floatformat:2 }}</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -214,14 +214,14 @@ function updateQuantity(input) {
     
     // Update line total
     const lineTotal = $('#line-total-' + key);
-    lineTotal.text('$' + (price * quantity).toFixed(2));
+    lineTotal.text('ETB ' + (price * quantity).toFixed(2));
     
     // Update grand total
     let grandTotal = 0;
     $('.line-total').each(function() {
-        grandTotal += parseFloat($(this).text().replace('$', ''));
+        grandTotal += parseFloat($(this).text().replace('ETB ', ''));
     });
-    $('#grand-total').text('$' + grandTotal.toFixed(2));
+    $('#grand-total').text('ETB ' + grandTotal.toFixed(2));
     
     // AJAX with CSRF
     $.ajaxSetup({

@@ -18,7 +18,7 @@
             <h3>Order Details</h3>
             <p><strong>Product:</strong> {{ orders.product.name }}</p>
             <p><strong>Quantity:</strong> {{ orders.quantity }}</p>
-            <p><strong>Total:</strong> ${{ orders.total|floatformat:2 }}</p>
+            <p><strong>Total:</strong> <small>ETB</small> {{ orders.total|floatformat:2 }}</p>
             <p><strong>Stock Remaining:</strong> {{ orders.product.stock }} (auto-updated)</p>
             {% if orders.product.stock == 0 %}
                 <p class="alert alert-warning">Product sold out—removed from site.</p>

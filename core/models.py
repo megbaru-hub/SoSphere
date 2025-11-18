@@ -159,6 +159,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     payment_status = models.CharField(max_length=20, default='Pending') 
     receipt_signature = models.CharField(max_length=32, unique=True, blank=True, null=True)
+    tx_ref = models.CharField(max_length=100, unique=True, blank=True, null=True, help_text='Chapa transaction reference')
 
     def save(self, *args, **kwargs):
         if not self.receipt_signature:
