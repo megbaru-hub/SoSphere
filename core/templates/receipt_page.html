@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Receipt - Order #{{ order.id }}{% endblock %}
 
@@ -94,6 +95,508 @@
     .btn-download-image:hover { background-color: #0a58ca; color: white; }
     .btn-download-html { background-color: #198754; color: white; }
     .btn-download-html:hover { background-color: #157347; color: white; }
+    
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .receipt-container {
+            padding: 20px 15px;
+            margin: 5px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .receipt-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #6366f1;
+        }
+        
+        .receipt-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-header p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        .receipt-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-info .col-md-6,
+        .receipt-info div {
+            width: 100% !important;
+            text-align: left !important;
+            margin-bottom: 12px;
+            padding: 0 !important;
+        }
+        
+        .receipt-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .receipt-info strong {
+            color: #495057;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 120px;
+        }
+        
+        .receipt-table {
+            font-size: 0.9rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .receipt-table th,
+        .receipt-table td {
+            padding: 12px 8px;
+            border-color: #dee2e6;
+        }
+        
+        .receipt-table th {
+            background: #6366f1;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Stack table on very small screens */
+        @media (max-width: 576px) {
+            .receipt-table {
+                border: none;
+                background: transparent;
+            }
+            
+            .receipt-table thead {
+                display: none;
+            }
+            
+            .receipt-table,
+            .receipt-table tbody,
+            .receipt-table tr,
+            .receipt-table td {
+                display: block;
+                width: 100% !important;
+                text-align: left !important;
+                border: none !important;
+            }
+            
+            .receipt-table tbody tr {
+                background: white;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            .receipt-table tbody tr:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            
+            .receipt-table td {
+                position: relative;
+                padding: 8px 0 8px 120px !important;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #f1f3f4 !important;
+            }
+            
+            .receipt-table td:last-child {
+                border-bottom: none !important;
+                margin-bottom: 0;
+            }
+            
+            .receipt-table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 110px;
+                font-weight: 600;
+                color: #6c757d;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+            
+            /* Special styling for item name */
+            .receipt-table td[data-label="Item"] {
+                font-weight: 600;
+                color: #2c3e50;
+                padding-left: 0 !important;
+                margin-bottom: 12px;
+                font-size: 1rem;
+                border-bottom: 2px solid #6366f1 !important;
+            }
+            
+            .receipt-table td[data-label="Item"]:before {
+                display: none;
+            }
+            
+            /* Price and subtotal styling */
+            .receipt-table td[data-label="Price"],
+            .receipt-table td[data-label="Subtotal"] {
+                font-family: 'Courier New', monospace;
+                font-weight: 600;
+                color: #27ae60;
+            }
+            
+            .receipt-table td[data-label="Qty"] {
+                font-weight: 600;
+                color: #6366f1;
+            }
+            
+            .receipt-table tfoot {
+                display: block;
+            }
+            
+            .receipt-table tfoot tr {
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 20px;
+                box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            }
+            
+            .receipt-table tfoot td {
+                padding: 0 !important;
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+            
+            .receipt-table tfoot td:first-child {
+                display: none;
+            }
+            
+            .receipt-table tfoot td:last-child:before {
+                content: "GRAND TOTAL: ";
+                font-weight: 700;
+                color: white;
+                margin-right: 10px;
+            }
+            
+            .receipt-table tfoot td:last-child small {
+                color: white;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .signature-area {
+            background: #f8f9fa;
+            padding: 20px 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+            position: relative;
+        }
+        
+        .signature-box {
+            margin-bottom: 20px;
+        }
+        
+        .signature-box span:first-child {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .signature-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #e74c3c;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e74c3c;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+        
+        .stamp-box {
+            margin-top: 20px;
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .stamp-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #6366f1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: contain;
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stamp-box .text-muted {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+        
+        .download-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .download-buttons .btn {
+            width: 100%;
+            margin: 0 !important;
+            padding: 12px 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .download-buttons .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .download-buttons .btn i {
+            margin-right: 8px;
+        }
+        
+        .text-success.fw-bold {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1rem;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+    }
+    
+    /* Print and Download Styles - Always use desktop format */
+    @media print {
+        .receipt-container {
+            padding: 30px;
+            margin: 0;
+            background: #fff;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        
+        .receipt-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #6366f1;
+        }
+        
+        .receipt-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .receipt-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .receipt-info .col-md-6 {
+            width: 50% !important;
+            float: left;
+            padding: 0 15px;
+        }
+        
+        .receipt-info .col-md-6:last-child {
+            text-align: right !important;
+        }
+        
+        .receipt-info p {
+            margin: 5px 0;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .receipt-info strong {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        /* Force desktop table layout for print */
+        .receipt-table {
+            font-size: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            width: 100% !important;
+            display: table !important;
+        }
+        
+        .receipt-table thead {
+            display: table-header-group !important;
+        }
+        
+        .receipt-table tbody {
+            display: table-row-group !important;
+        }
+        
+        .receipt-table tr {
+            display: table-row !important;
+        }
+        
+        .receipt-table th,
+        .receipt-table td {
+            display: table-cell !important;
+            width: auto !important;
+            padding: 12px 15px !important;
+            border: 1px solid #dee2e6 !important;
+            text-align: left !important;
+        }
+        
+        .receipt-table th {
+            background: #6366f1 !important;
+            color: white !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .receipt-table th.text-end,
+        .receipt-table td.text-end {
+            text-align: right !important;
+        }
+        
+        .receipt-table tfoot {
+            display: table-footer-group !important;
+        }
+        
+        .receipt-table tfoot tr {
+            display: table-row !important;
+        }
+        
+        .receipt-table tfoot td {
+            display: table-cell !important;
+            background: #f8f9fa !important;
+            font-weight: 700;
+        }
+        
+        /* Hide mobile-specific elements */
+        .receipt-table td:before {
+            display: none !important;
+        }
+        
+        .signature-area {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px dashed #dee2e6;
+            page-break-inside: avoid;
+        }
+        
+        .signature-box {
+            margin-bottom: 30px;
+        }
+        
+        .signature-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #e74c3c;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e74c3c;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        
+        .stamp-box {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .stamp-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #6366f1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .text-success.fw-bold {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        /* Hide download buttons in print */
+        .download-buttons {
+            display: none !important;
+        }
+        
+        /* Ensure proper page breaks */
+        .receipt-container {
+            page-break-inside: avoid;
+        }
+        
+        .receipt-table {
+            page-break-inside: auto;
+        }
+        
+        .receipt-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }
 </style>
 
 <div class="receipt-container" id="receiptContent">
@@ -112,7 +615,7 @@
         </div>
         <div class="col-md-6 text-md-end">
             <p><strong>Date of Purchase:</strong> {{ order_date|date:"F d, Y - H:i" }}</p>
-            <p><strong>Total Paid:</strong> <small>ETB</small> {{ total|floatformat:2 }}</p>
+            <p><strong>Total Paid:</strong> <small>ETB</small> {{ total|floatformat:2|intcomma }}</p>
             <p><strong>Payment Method:</strong> {{ order.payment_method|default:"N/A" }}</p>
         </div>
     </div>
@@ -129,17 +632,17 @@
         <tbody>
             {% for item in items %}
             <tr>
-                <td>{{ item.name }}</td>
-                <td class="text-end">{{ item.quantity }}</td>
-                <td class="text-end"><small>ETB</small> {{ item.price|floatformat:2 }}</td>
-                <td class="text-end"><small>ETB</small> {{ item.subtotal|floatformat:2 }}</td>
+                <td data-label="Item">{{ item.name }}</td>
+                <td class="text-end" data-label="Qty">{{ item.quantity }}</td>
+                <td class="text-end" data-label="Price"><small>ETB</small> {{ item.price|floatformat:2|intcomma }}</td>
+                <td class="text-end" data-label="Subtotal"><small>ETB</small> {{ item.subtotal|floatformat:2|intcomma }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr class="fw-bold">
-                <td colspan="3" class="text-end">GRAND TOTAL</td>
-                <td class="text-end"><small>ETB</small> {{ total|floatformat:2 }}</td>
+                <td colspan="3" class="text-end d-none d-md-table-cell">GRAND TOTAL</td>
+                <td class="text-end"><small>ETB</small> {{ total|floatformat:2|intcomma }}</td>
             </tr>
         </tfoot>
     </table>
@@ -157,6 +660,7 @@
         <div class="stamp-box">
             {% if stamp_image_b64 %}
                 <img src="{{ stamp_image_b64 }}" alt="Official Grand Seller Stamp" class="stamp-image"/>
+                <span class="text-muted">Official Stamp</span>
             {% else %}
                 <span class="text-muted">Official Stamp Area</span>
             {% endif %}

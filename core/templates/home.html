@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 {% block title %}Home - Grand Seller{% endblock %}
 {% block content %}
 
@@ -176,7 +178,7 @@
                     <p class="card-text text-muted flex-grow-1" style="font-size: 0.9rem;">{{ product.description|truncatewords:10 }}</p>
                     
                     <div class="d-flex justify-content-between align-items-center mt-auto mb-3">
-                        <span class="dark-golden-text h5 fw-bolder"><small>ETB</small> {{ product.price }}</span>
+                        <span class="dark-golden-text h5 fw-bolder"><small>ETB</small> {{ product.price|floatformat:2|intcomma }}</span>
                         <span class="text-warning small fw-bold">
                             <i class="bi bi-box-seam me-1"></i> Stock: {{ product.stock }}
                         </span>
@@ -214,7 +216,6 @@
         <div class="col-lg-10">
             <div class="developer-card text-center">
                 <h2 class="section-title text-center" style="border-left: none; padding-left: 0;">Meet the Developer</h2>
-                {% load static %}
                 <img src="{% static 'images/6.jpg' %}" class="developer-image mb-4" alt="Developer Profile Picture"> 
 
                 <h3 class="fw-bold dark-golden-text">Megbaru Dessie</h3>

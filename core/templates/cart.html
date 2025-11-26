@@ -2,6 +2,7 @@
 {% extends 'base.html' %}
 {% load math_filters %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Cart - Grand Seller{% endblock %}
 
@@ -146,14 +147,14 @@
                                 </div>
                             </div>
                         </td>
-                        <td><small>ETB</small> {{ item.price|floatformat:2 }}</td>
+                        <td><small>ETB</small> {{ item.price|floatformat:2|intcomma }}</td>
                         <td>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.stock }}" data-key="{{ key }}" data-price="{{ item.price }}" onchange="updateQuantity(this)">
                                 <span class="input-group-text"> </span>
                             </div>
                         </td>
-                        <td class="line-total text-success fw-bold" id="line-total-{{ key }}"><small>ETB</small> {{ item.price|floatformat:2|multiply:item.quantity|floatformat:2 }}</td>
+                        <td class="line-total text-success fw-bold" id="line-total-{{ key }}"><small>ETB</small> {{ item.price|floatformat:2|multiply:item.quantity|floatformat:2|intcomma }}</td>
                         <td>
                             <form method="post" action="{% url 'remove_from_cart' key %}" class="d-inline" onsubmit="return confirm('Remove {{ item.name }}?');">
                                 {% csrf_token %}
@@ -166,7 +167,7 @@
                 <tfoot class="grand-total-row">
                     <tr>
                         <td colspan="3" class="text-end"><strong>Grand Total</strong></td>
-                        <td colspan="2"><strong class="text-success fs-4" id="grand-total"><small>ETB</small> {{ total|floatformat:2 }}</strong></td>
+                        <td colspan="2"><strong class="text-success fs-4" id="grand-total"><small>ETB</small> {{ total|floatformat:2|intcomma }}</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -214,14 +215,20 @@ function updateQuantity(input) {
     
     // Update line total
     const lineTotal = $('#line-total-' + key);
-    lineTotal.text('ETB ' + (price * quantity).toFixed(2));
+    lineTotal.text('ETB ' + (price * quantity).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     
     // Update grand total
     let grandTotal = 0;
     $('.line-total').each(function() {
-        grandTotal += parseFloat($(this).text().replace('ETB ', ''));
+        // Get the text, remove 'ETB' and any whitespace, then remove all commas before parsing
+        const priceText = $(this).text().replace('ETB', '').trim().replace(/,/g, '');
+        const price = parseFloat(priceText);
+        if (!isNaN(price)) {
+            grandTotal += price;
+        }
     });
-    $('#grand-total').text('ETB ' + grandTotal.toFixed(2));
+    // Format the grand total with 2 decimal places and thousand separators
+    $('#grand-total').html('<small>ETB</small> ' + grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','));
     
     // AJAX with CSRF
     $.ajaxSetup({
